@@ -39,6 +39,30 @@
       </div>
     </div>
 
+    <!-- Allowlist denied state -->
+    <div v-else-if="allowlistDenied" class="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div class="bg-white p-8 rounded-lg shadow-md max-w-md text-center">
+        <svg
+          class="h-16 w-16 text-amber-500 mx-auto mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Access Restricted</h2>
+        <p class="text-gray-600 mb-1">Signed in as <span class="font-medium">{{ user.email }}</span></p>
+        <p class="text-gray-500 text-sm mb-6">You are not on the access list. Contact a team member to request access.</p>
+        <button
+          @click="signOut"
+          class="px-6 py-3 bg-primary-700 text-white rounded-md font-medium hover:bg-primary-800 transition-colors"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+
     <!-- Unauthenticated state -->
     <div v-else-if="!user" class="min-h-screen bg-gray-50 flex items-center justify-center">
       <div class="bg-white p-8 rounded-lg shadow-md max-w-md text-center">
@@ -68,5 +92,5 @@
 <script setup>
 import { useAuth } from '../composables/useAuth'
 
-const { user, loading, error, signIn } = useAuth()
+const { user, loading, error, allowlistDenied, signIn, signOut } = useAuth()
 </script>

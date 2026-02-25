@@ -17,6 +17,15 @@ const { readFromStorage, writeToStorage } = require('./storage');
 const { createJiraClient } = require('./jira/jira-client');
 const { discoverBoards, performRefresh } = require('./jira/orchestration');
 
+// Firebase Admin for production token verification
+let firebaseAdmin = null;
+if (process.env.NODE_ENV === 'production' || process.env.FIREBASE_AUTH === 'true') {
+  firebaseAdmin = require('firebase-admin');
+  if (!firebaseAdmin.apps.length) {
+    firebaseAdmin.initializeApp();
+  }
+}
+
 const app = express();
 app.use(express.json());
 
@@ -31,18 +40,67 @@ app.use(function(req, res, next) {
 const JIRA_HOST = process.env.JIRA_HOST || 'https://issues.redhat.com';
 const PORT = process.env.API_PORT || 3001;
 
-// ─── Auth middleware (skip Firebase verification in local dev) ───
+// ─── Allowlist seed ───
 
-function localAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    console.log('  [auth] No auth header - OK in local dev');
+function seedAllowlist() {
+  const existing = readFromStorage('allowlist.json');
+  if (existing && existing.emails && existing.emails.length > 0) {
+    console.log(`Allowlist: ${existing.emails.length} user(s) loaded`);
+    return;
   }
-  req.userEmail = 'local-dev@redhat.com';
+
+  const adminEmails = process.env.ADMIN_EMAILS;
+  if (!adminEmails) {
+    console.warn('WARNING: No allowlist.json and ADMIN_EMAILS not set — all API requests will 403');
+    writeToStorage('allowlist.json', { emails: [] });
+    return;
+  }
+
+  const emails = adminEmails
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  writeToStorage('allowlist.json', { emails });
+  console.log(`Allowlist: seeded with ${emails.length} email(s) from ADMIN_EMAILS`);
+}
+
+// ─── Auth middleware ───
+
+async function authMiddleware(req, res, next) {
+  // Skip CORS preflight
+  if (req.method === 'OPTIONS') return next();
+
+  // Determine user email
+  if (firebaseAdmin) {
+    // Production: verify Firebase ID token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing or invalid authorization header' });
+    }
+    try {
+      const token = authHeader.split('Bearer ')[1];
+      const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+      req.userEmail = decoded.email.toLowerCase();
+    } catch (err) {
+      console.error('[auth] Token verification failed:', err.message);
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+  } else {
+    // Local dev: use hardcoded email
+    req.userEmail = 'local-dev@redhat.com';
+  }
+
+  // Check allowlist
+  const allowlist = readFromStorage('allowlist.json');
+  if (!allowlist || !allowlist.emails.includes(req.userEmail)) {
+    return res.status(403).json({ error: 'Access denied. You are not on the allowlist.' });
+  }
+
   next();
 }
 
-app.use(localAuth);
+app.use(authMiddleware);
 
 // ─── Jira API helpers ───
 
@@ -485,10 +543,72 @@ app.delete('/api/sprints/:sprintId/annotations/:assignee/:annotationId', functio
   }
 });
 
+// ─── Routes: Allowlist ───
+
+app.get('/api/allowlist', function(req, res) {
+  try {
+    const data = readFromStorage('allowlist.json') || { emails: [] };
+    res.json({ emails: data.emails });
+  } catch (error) {
+    console.error('Read allowlist error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/allowlist', function(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const normalized = email.trim().toLowerCase();
+    if (!normalized.endsWith('@redhat.com')) {
+      return res.status(400).json({ error: 'Only @redhat.com email addresses are allowed' });
+    }
+
+    const data = readFromStorage('allowlist.json') || { emails: [] };
+    if (data.emails.includes(normalized)) {
+      return res.status(409).json({ error: 'Email is already on the allowlist' });
+    }
+
+    data.emails.push(normalized);
+    writeToStorage('allowlist.json', data);
+    res.json({ emails: data.emails });
+  } catch (error) {
+    console.error('Add to allowlist error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/allowlist/:email', function(req, res) {
+  try {
+    const email = decodeURIComponent(req.params.email).toLowerCase();
+    const data = readFromStorage('allowlist.json') || { emails: [] };
+
+    if (!data.emails.includes(email)) {
+      return res.status(404).json({ error: 'Email not found on allowlist' });
+    }
+
+    if (data.emails.length <= 1) {
+      return res.status(400).json({ error: 'Cannot remove the last user from the allowlist' });
+    }
+
+    data.emails = data.emails.filter(e => e !== email);
+    writeToStorage('allowlist.json', data);
+    res.json({ emails: data.emails });
+  } catch (error) {
+    console.error('Remove from allowlist error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // CORS preflight
 app.options('/api/{*path}', function(req, res) { res.status(200).end(); });
 
 // ─── Start ───
+
+seedAllowlist();
 
 app.listen(PORT, function() {
   console.log(`\nTeam Tracker dev server running at http://localhost:${PORT}`);

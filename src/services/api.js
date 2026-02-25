@@ -52,7 +52,14 @@ async function apiRequest(path, options = {}) {
     if (response.status === 401) {
       throw new Error('Authentication failed. Please sign in again.')
     }
-    throw new Error(errorData.error || `HTTP ${response.status}`)
+    if (response.status === 403) {
+      const err = new Error(errorData.error || 'Access denied')
+      err.status = 403
+      throw err
+    }
+    const err = new Error(errorData.error || `HTTP ${response.status}`)
+    err.status = response.status
+    throw err
   }
 
   return response.json()
@@ -169,6 +176,24 @@ export async function saveAnnotation(sprintId, { assignee, text }) {
 
 export async function deleteAnnotation(sprintId, assignee, annotationId) {
   return apiRequest(`/sprints/${sprintId}/annotations/${encodeURIComponent(assignee)}/${annotationId}`, {
+    method: 'DELETE'
+  })
+}
+
+export async function getAllowlist() {
+  return apiRequest('/allowlist')
+}
+
+export async function addToAllowlist(email) {
+  return apiRequest('/allowlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  })
+}
+
+export async function removeFromAllowlist(email) {
+  return apiRequest(`/allowlist/${encodeURIComponent(email)}`, {
     method: 'DELETE'
   })
 }

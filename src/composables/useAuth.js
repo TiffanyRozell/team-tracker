@@ -6,9 +6,12 @@ import {
 } from 'firebase/auth'
 import { auth, googleProvider } from '../config/firebase'
 
+const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || '/api'
+
 const user = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const allowlistDenied = ref(false)
 
 let unsubscribe = null
 
@@ -26,11 +29,27 @@ export function useAuth() {
           return
         }
 
-        // Valid user
+        // Valid domain — check allowlist
         user.value = firebaseUser
         error.value = null
+
+        try {
+          const token = await firebaseUser.getIdToken()
+          const res = await fetch(`${API_ENDPOINT}/allowlist`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (res.status === 403) {
+            allowlistDenied.value = true
+          } else {
+            allowlistDenied.value = false
+          }
+        } catch {
+          // Network error in dev — don't block if server isn't running
+          allowlistDenied.value = false
+        }
       } else {
         user.value = null
+        allowlistDenied.value = false
       }
 
       loading.value = false
@@ -83,6 +102,7 @@ export function useAuth() {
     user,
     loading,
     error,
+    allowlistDenied,
     signIn,
     signOut,
     getIdToken
