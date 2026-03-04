@@ -6,6 +6,16 @@
         <h2 class="text-xl font-bold text-gray-900">Organization Teams</h2>
         <p class="text-sm text-gray-500">{{ teams.length }} teams &middot; {{ uniqueMemberCount }} unique members</p>
       </div>
+      <button
+        @click="handleRefreshAll"
+        :disabled="isRefreshing"
+        class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+      >
+        <svg class="h-4 w-4" :class="{ 'animate-spin': isRefreshing }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        {{ isRefreshing ? 'Refreshing All...' : 'Refresh All Metrics' }}
+      </button>
     </div>
 
     <!-- Loading state -->
@@ -39,10 +49,29 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import OrgTeamCard from './OrgTeamCard.vue'
 import { useRoster } from '../composables/useRoster'
+import { refreshAllMetrics } from '../services/api'
 
 const { teams, loading, error, uniqueMemberCount } = useRoster()
 
 defineEmits(['select-team'])
+
+const isRefreshing = ref(false)
+
+async function handleRefreshAll() {
+  isRefreshing.value = true
+  try {
+    const result = await refreshAllMetrics()
+    console.log(`Refresh started for ${result.memberCount} members`)
+  } catch (err) {
+    console.error('Failed to start refresh:', err)
+  } finally {
+    // The server processes in the background; keep spinner briefly to indicate it was kicked off
+    setTimeout(() => {
+      isRefreshing.value = false
+    }, 3000)
+  }
+}
 </script>

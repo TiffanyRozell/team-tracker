@@ -80,6 +80,13 @@ export async function getTeamMetrics(teamKey) {
   return apiRequest(`/team/${encodeURIComponent(teamKey)}/metrics`)
 }
 
+export async function refreshAllMetrics() {
+  return apiRequest('/roster/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
 export async function refreshTeamMetrics(teamKey) {
   return apiRequest(`/team/${encodeURIComponent(teamKey)}/refresh`, {
     method: 'POST',

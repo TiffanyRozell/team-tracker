@@ -607,6 +607,58 @@ app.get('/api/team/:teamKey/metrics', function(req, res) {
   }
 });
 
+app.post('/api/roster/refresh', function(req, res) {
+  try {
+    const roster = readRoster();
+
+    // Collect unique members across all teams
+    const seen = new Set();
+    const uniqueMembers = [];
+    for (const team of Object.values(roster.teams)) {
+      for (const member of team.members) {
+        if (!seen.has(member.jiraDisplayName)) {
+          seen.add(member.jiraDisplayName);
+          uniqueMembers.push(member);
+        }
+      }
+    }
+
+    res.json({ status: 'started', memberCount: uniqueMembers.length });
+
+    // Background fetch with concurrency limit of 3
+    setImmediate(async () => {
+      const CONCURRENCY = 3;
+      let i = 0;
+      let completed = 0;
+
+      async function next() {
+        if (i >= uniqueMembers.length) return;
+        const member = uniqueMembers[i++];
+        try {
+          console.log(`[roster-refresh] Fetching metrics for ${member.jiraDisplayName} (${++completed}/${uniqueMembers.length})`);
+          const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName);
+          const key = sanitizeFilename(member.jiraDisplayName);
+          writeToStorage(`people/${key}.json`, metrics);
+        } catch (error) {
+          console.error(`[roster-refresh] Failed for ${member.jiraDisplayName}:`, error.message);
+          completed++;
+        }
+        return next();
+      }
+
+      const workers = [];
+      for (let w = 0; w < CONCURRENCY; w++) {
+        workers.push(next());
+      }
+      await Promise.all(workers);
+      console.log(`[roster-refresh] All teams refresh complete (${uniqueMembers.length} members)`);
+    });
+  } catch (error) {
+    console.error('Roster refresh error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/team/:teamKey/refresh', function(req, res) {
   try {
     const teamKey = decodeURIComponent(req.params.teamKey);
