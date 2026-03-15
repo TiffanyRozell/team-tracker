@@ -638,12 +638,10 @@ app.get('/api/person/:jiraDisplayName/metrics', async function(req, res) {
     const forceRefresh = req.query.refresh === 'true';
 
     // Check cache (4-hour TTL, or any age in demo mode)
-    if (!forceRefresh || DEMO_MODE) {
-      const cached = readFromStorage(cachePath);
-      if (cached) {
-        if (DEMO_MODE || (cached.fetchedAt && (Date.now() - new Date(cached.fetchedAt).getTime()) < 4 * 60 * 60 * 1000)) {
-          return res.json(cached);
-        }
+    const cached = (!forceRefresh || DEMO_MODE) ? readFromStorage(cachePath) : null;
+    if (cached) {
+      if (DEMO_MODE || (cached.fetchedAt && (Date.now() - new Date(cached.fetchedAt).getTime()) < 4 * 60 * 60 * 1000)) {
+        return res.json(cached);
       }
     }
 
@@ -651,14 +649,22 @@ app.get('/api/person/:jiraDisplayName/metrics', async function(req, res) {
       return res.status(404).json({ error: `No demo data for ${name}` });
     }
 
-    // Fetch from Jira
-    const metrics = await fetchPersonMetrics(jiraRequest, name, { nameCache: jiraNameCache });
-    if (metrics._resolvedName) {
-      persistNameCache();
-      delete metrics._resolvedName;
+    // Fetch from Jira, fall back to stale cache if Jira is unavailable
+    try {
+      const metrics = await fetchPersonMetrics(jiraRequest, name, { nameCache: jiraNameCache });
+      if (metrics._resolvedName) {
+        persistNameCache();
+        delete metrics._resolvedName;
+      }
+      writeToStorage(cachePath, metrics);
+      return res.json(metrics);
+    } catch (jiraErr) {
+      if (cached) {
+        console.warn(`Jira fetch failed for ${name}, returning stale cache:`, jiraErr.message);
+        return res.json({ ...cached, stale: true, staleReason: 'Jira is temporarily unavailable' });
+      }
+      throw jiraErr;
     }
-    writeToStorage(cachePath, metrics);
-    res.json(metrics);
   } catch (error) {
     console.error(`Person metrics error (${req.params.jiraDisplayName}):`, error);
     res.status(500).json({ error: error.message });

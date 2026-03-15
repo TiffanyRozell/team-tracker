@@ -12,7 +12,8 @@
             <button
               v-if="authUser"
               @click="handleRefreshAll($event)"
-              :disabled="isRefreshing"
+              :disabled="true"
+              title="Refreshes temporarily disabled — Jira is down"
               class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 border border-primary-400"
             >
               <svg class="h-4 w-4" :class="{ 'animate-spin': isRefreshing }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

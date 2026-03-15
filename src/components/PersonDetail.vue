@@ -50,7 +50,8 @@
         </div>
         <button
           @click="loadMetrics(true)"
-          :disabled="isLoading"
+          :disabled="true"
+          title="Refreshes temporarily disabled — Jira is down"
           class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
         >
           <svg class="h-4 w-4" :class="{ 'animate-spin': isLoading }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,6 +59,20 @@
           </svg>
           Refresh
         </button>
+      </div>
+    </div>
+
+    <!-- Stale data warning -->
+    <div v-if="metrics?.stale" class="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-6 flex items-start gap-3">
+      <svg class="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <p class="text-amber-800 text-sm font-medium">Showing cached data</p>
+        <p class="text-amber-700 text-xs mt-0.5">
+          {{ metrics.staleReason || 'Unable to fetch latest data from Jira.' }}
+          Data was last fetched {{ metrics.fetchedAt ? new Date(metrics.fetchedAt).toLocaleString() : 'at an unknown time' }}.
+        </p>
       </div>
     </div>
 

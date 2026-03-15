@@ -251,25 +251,32 @@ app.get('/person/:jiraDisplayName/metrics', async function (req, res) {
     const forceRefresh = req.query.refresh === 'true';
 
     // Check cache (4-hour TTL)
-    if (!forceRefresh) {
-      const cached = await readFromS3(cachePath);
-      if (cached && cached.fetchedAt) {
-        const age = Date.now() - new Date(cached.fetchedAt).getTime();
-        if (age < CACHE_TTL_MS) {
-          return res.json(cached);
-        }
+    const cached = !forceRefresh ? await readFromS3(cachePath) : null;
+    if (cached && cached.fetchedAt) {
+      const age = Date.now() - new Date(cached.fetchedAt).getTime();
+      if (age < CACHE_TTL_MS) {
+        return res.json(cached);
       }
     }
 
     // Fetch from Jira inline (2 parallel JQL queries, well within 25s timeout)
-    const nameCache = await getNameCache();
-    const metrics = await fetchPersonMetrics(jiraRequest, name, { nameCache });
-    if (metrics._resolvedName) {
-      await persistNameCache();
-      delete metrics._resolvedName;
+    try {
+      const nameCache = await getNameCache();
+      const metrics = await fetchPersonMetrics(jiraRequest, name, { nameCache });
+      if (metrics._resolvedName) {
+        await persistNameCache();
+        delete metrics._resolvedName;
+      }
+      await writeToS3(cachePath, metrics);
+      return res.json(metrics);
+    } catch (jiraErr) {
+      // If Jira is unreachable but we have stale cached data, return it with a warning
+      if (cached) {
+        console.warn(`Jira fetch failed for ${name}, returning stale cache:`, jiraErr.message);
+        return res.json({ ...cached, stale: true, staleReason: 'Jira is temporarily unavailable' });
+      }
+      throw jiraErr;
     }
-    await writeToS3(cachePath, metrics);
-    res.json(metrics);
   } catch (error) {
     console.error(`Person metrics error (${req.params.jiraDisplayName}):`, error);
     res.status(500).json({ error: error.message });
