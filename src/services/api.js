@@ -213,6 +213,33 @@ export async function refreshGithubContributions() {
   })
 }
 
+// ─── GitLab Contributions ───
+
+export async function getGitlabContributions(onData) {
+  return cachedRequest('gitlab-contributions', '/gitlab/contributions', onData)
+}
+
+export async function refreshGitlabContribution(username) {
+  return apiRequest(`/gitlab/contributions/${encodeURIComponent(username)}/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+export async function refreshGitlabContributions() {
+  return apiRequest('/gitlab/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
+export async function refreshTrendsGitlab() {
+  return apiRequest('/trends/gitlab/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+}
+
 // ─── Trends ───
 
 export async function getTrends(onData) {
