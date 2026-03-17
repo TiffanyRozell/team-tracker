@@ -196,6 +196,7 @@ async function deriveRoster() {
         jiraTeam: person.jiraTeam || null,
         status: person.status || null,
         githubUsername: person.githubUsername || null,
+        gitlabUsername: person.gitlabUsername || null,
         geo: person.geo || null,
         location: person.location || null,
         country: person.country || null,

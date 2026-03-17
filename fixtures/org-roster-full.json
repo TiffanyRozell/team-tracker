@@ -13,6 +13,7 @@
         "title": "Senior Engineering Manager",
         "jiraTeam": "Platform",
         "githubUsername": "alicechen",
+        "gitlabUsername": "alicechen",
         "specialty": "backend"
       },
       "members": [
@@ -23,6 +24,7 @@
           "title": "Senior Software Engineer",
           "jiraTeam": "Platform",
           "githubUsername": "bobsmith",
+          "gitlabUsername": "bobsmith",
           "specialty": "backend"
         },
         {
@@ -32,6 +34,7 @@
           "title": "Software Engineer",
           "jiraTeam": "Platform",
           "githubUsername": "carolw",
+          "gitlabUsername": "carolw",
           "specialty": "fullstack"
         },
         {
@@ -41,6 +44,7 @@
           "title": "Principal Software Engineer",
           "jiraTeam": "Infrastructure",
           "githubUsername": "davidlee",
+          "gitlabUsername": "davidlee",
           "specialty": "backend"
         },
         {
@@ -50,6 +54,7 @@
           "title": "Software Engineer",
           "jiraTeam": "Infrastructure",
           "githubUsername": "emmagarcia",
+          "gitlabUsername": "emmagarcia",
           "specialty": "devops"
         }
       ]
@@ -62,6 +67,7 @@
         "title": "Engineering Manager",
         "jiraTeam": "ML Platform",
         "githubUsername": "frankj",
+        "gitlabUsername": "frankj",
         "specialty": "ml"
       },
       "members": [
@@ -72,6 +78,7 @@
           "title": "Senior Software Engineer",
           "jiraTeam": "ML Platform",
           "githubUsername": "gracekim",
+          "gitlabUsername": "gracekim",
           "specialty": "ml"
         },
         {
@@ -81,6 +88,7 @@
           "title": "Software Engineer",
           "jiraTeam": "ML Platform",
           "githubUsername": "henryw",
+          "gitlabUsername": "henryw",
           "specialty": "ml"
         },
         {
@@ -90,6 +98,7 @@
           "title": "Principal Software Engineer",
           "jiraTeam": "Data Pipeline",
           "githubUsername": "irism",
+          "gitlabUsername": "irism",
           "specialty": "data"
         },
         {
@@ -99,6 +108,7 @@
           "title": "Software Engineer",
           "jiraTeam": "Data Pipeline",
           "githubUsername": "jackbrown",
+          "gitlabUsername": "jackbrown",
           "specialty": "backend"
         }
       ]

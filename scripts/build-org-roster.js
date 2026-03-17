@@ -108,6 +108,18 @@ function extractGithubFromSocialUrls(entry) {
   return null
 }
 
+function extractGitlabFromSocialUrls(entry) {
+  const urls = entry.rhatSocialUrl
+  if (!urls) return null
+
+  const list = Array.isArray(urls) ? urls : [urls]
+  for (const url of list) {
+    const match = url.match(/^Gitlab->https?:\/\/gitlab\.com\/([^/\s]+)\/?$/)
+    if (match) return match[1]
+  }
+  return null
+}
+
 function extractManagerUid(entry) {
   if (!entry.manager) return null
   const match = entry.manager.match(/^uid=([^,]+),/)
@@ -127,7 +139,8 @@ function entryToPerson(entry) {
     officeLocation: entry.rhatOfficeLocation || '',
     costCenter: entry.rhatCostCenter || '',
     managerUid: extractManagerUid(entry),
-    githubUsername: extractGithubFromSocialUrls(entry)
+    githubUsername: extractGithubFromSocialUrls(entry),
+    gitlabUsername: extractGitlabFromSocialUrls(entry)
   }
 }
 
