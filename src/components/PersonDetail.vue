@@ -61,8 +61,7 @@
         </div>
         <button
           @click="loadMetrics(true)"
-          :disabled="true"
-          title="Refreshes temporarily disabled — Jira is down"
+          :disabled="isLoading"
           class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
         >
           <svg class="h-4 w-4" :class="{ 'animate-spin': isLoading }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
