@@ -286,8 +286,8 @@ async function handleSave() {
     await saveConfig({
       orgRoots,
       googleSheetId: editSheetId.value.trim() || null,
-      githubOrgs: githubOrgs.length > 0 ? githubOrgs : undefined,
-      gitlabGroups: gitlabGroups.length > 0 ? gitlabGroups : undefined
+      githubOrgs,
+      gitlabGroups
     })
     saveMessage.value = 'Configuration saved.'
     emit('toast', { message: 'Roster sync configuration saved', type: 'success' })

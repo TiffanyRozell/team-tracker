@@ -1550,7 +1550,7 @@ app.get('/api/admin/roster-sync/config', requireAdmin, function(req, res) {
 
 app.post('/api/admin/roster-sync/config', requireAdmin, function(req, res) {
   try {
-    const { orgRoots, googleSheetId, sheetNames } = req.body;
+    const { orgRoots, googleSheetId, sheetNames, githubOrgs, gitlabGroups } = req.body;
 
     if (!orgRoots || !Array.isArray(orgRoots) || orgRoots.length === 0) {
       return res.status(400).json({ error: 'At least one org root is required' });
@@ -1568,6 +1568,8 @@ app.post('/api/admin/roster-sync/config', requireAdmin, function(req, res) {
       orgRoots,
       googleSheetId: googleSheetId || null,
       sheetNames: sheetNames || [],
+      githubOrgs: githubOrgs || [],
+      gitlabGroups: gitlabGroups || [],
       lastSyncAt: existing.lastSyncAt || null,
       lastSyncStatus: existing.lastSyncStatus || null,
       lastSyncError: existing.lastSyncError || null
