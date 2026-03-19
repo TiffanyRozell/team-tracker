@@ -36,10 +36,6 @@ function cacheSet(key, data) {
   }
 }
 
-function cacheDelete(key) {
-  localStorage.removeItem(CACHE_PREFIX + key)
-}
-
 function evictOldest() {
   const keys = []
   for (let i = 0; i < localStorage.length; i++) {
@@ -133,33 +129,21 @@ export async function getAllPeopleMetrics(onData) {
   return cachedRequest('people-metrics', '/people/metrics', onData)
 }
 
-export async function getPersonMetrics(jiraDisplayName, { refresh = false } = {}) {
-  const params = refresh ? '?refresh=true' : ''
-  const cacheKey = `person:${jiraDisplayName}`
-  if (refresh) {
-    cacheDelete(cacheKey)
-    const data = await apiRequest(`/person/${encodeURIComponent(jiraDisplayName)}/metrics${params}`)
-    cacheSet(cacheKey, data)
-    return data
-  }
-  return cachedRequest(cacheKey, `/person/${encodeURIComponent(jiraDisplayName)}/metrics`)
+export async function getPersonMetrics(jiraDisplayName) {
+  return cachedRequest(`person:${jiraDisplayName}`, `/person/${encodeURIComponent(jiraDisplayName)}/metrics`)
 }
 
 export async function getTeamMetrics(teamKey, onData) {
   return cachedRequest(`team:${teamKey}`, `/team/${encodeURIComponent(teamKey)}/metrics`, onData)
 }
 
-export async function refreshAllMetrics({ force = false } = {}) {
-  return apiRequest(`/roster/refresh${force ? '?force=true' : ''}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
+// ─── Unified Refresh ───
 
-export async function refreshTeamMetrics(teamKey) {
-  return apiRequest(`/team/${encodeURIComponent(teamKey)}/refresh`, {
+export async function refreshMetrics({ scope, name, teamKey, orgKey } = {}) {
+  return apiRequest('/refresh', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scope, name, teamKey, orgKey })
   })
 }
 
@@ -169,65 +153,16 @@ export async function getGithubContributions(onData) {
   return cachedRequest('github-contributions', '/github/contributions', onData)
 }
 
-export async function refreshGithubContribution(username) {
-  return apiRequest(`/github/contributions/${encodeURIComponent(username)}/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
-export async function refreshGithubContributions() {
-  return apiRequest('/github/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
 // ─── GitLab Contributions ───
 
 export async function getGitlabContributions(onData) {
   return cachedRequest('gitlab-contributions', '/gitlab/contributions', onData)
 }
 
-export async function refreshGitlabContribution(username) {
-  return apiRequest(`/gitlab/contributions/${encodeURIComponent(username)}/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
-export async function refreshGitlabContributions() {
-  return apiRequest('/gitlab/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
-export async function refreshTrendsGitlab() {
-  return apiRequest('/trends/gitlab/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
 // ─── Trends ───
 
 export async function getTrends(onData) {
   return cachedRequest('trends', '/trends', onData)
-}
-
-export async function refreshTrendsJira() {
-  return apiRequest('/trends/jira/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-}
-
-export async function refreshTrendsGithub() {
-  return apiRequest('/trends/github/refresh', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
 }
 
 // ─── Annotations ───

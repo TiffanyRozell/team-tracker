@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { getGithubContributions, refreshGithubContributions, refreshGithubContribution } from '../services/api'
+import { getGithubContributions } from '../services/api'
 
 const githubData = ref(null)
 const loading = ref(false)
@@ -30,45 +30,17 @@ export function useGithubStats() {
     }
   }
 
-  async function refreshStats() {
-    loading.value = true
-    try {
-      await refreshGithubContributions()
-      // Wait a moment for the background job to process, then reload
-      setTimeout(async () => {
-        try {
-          githubData.value = await getGithubContributions()
-        } finally {
-          loading.value = false
-        }
-      }, 5000)
-    } catch (err) {
-      console.error('Failed to refresh GitHub stats:', err)
-      loading.value = false
-    }
-  }
-
-  async function refreshUserStats(username) {
-    if (!username) return null
-    try {
-      const data = await refreshGithubContribution(username)
-      if (data && githubData.value) {
-        if (!githubData.value.users) githubData.value.users = {}
-        githubData.value.users[username] = data
-      }
-      return data
-    } catch (err) {
-      console.error('Failed to refresh GitHub stats for', username, err)
-      return null
-    }
+  function setUserContributions(username, data) {
+    if (!githubData.value) githubData.value = { users: {} }
+    if (!githubData.value.users) githubData.value.users = {}
+    githubData.value.users[username] = data
   }
 
   return {
     contributionsMap,
     getContributions,
     loadGithubStats,
-    refreshStats,
-    refreshUserStats,
+    setUserContributions,
     loading
   }
 }

@@ -20,7 +20,6 @@ const storageModule = DEMO_MODE ? require('./demo-storage') : require('./storage
 const { readFromStorage, writeToStorage, listStorageFiles } = storageModule;
 
 const { createJiraClient } = require('./jira/jira-client');
-const { discoverBoards, performRefresh } = require('./jira/orchestration');
 const { fetchPersonMetrics } = require('./jira/person-metrics');
 const rosterSync = require('./roster-sync');
 const rosterSyncConfig = require('./roster-sync/config');
@@ -194,74 +193,231 @@ async function jiraRequest(path, { method = 'GET', body } = {}) {
 // Create Jira client
 const jiraClient = createJiraClient({ jiraRequest, jiraHost: JIRA_HOST });
 
-const orchestrationDeps = {
-  ...jiraClient,
-  readStorage: readFromStorage,
-  writeStorage: writeToStorage
-};
+// ─── Routes: Unified Refresh ───
 
-// ─── Routes: Fetcher ───
+app.post('/api/refresh', requireAdmin, async function(req, res) {
+  const { scope, name, teamKey, orgKey } = req.body || {};
 
-app.post('/api/discover-boards', requireAdmin, async function(req, res) {
-  try {
-    console.log('\nDiscovering boards for project RHOAIENG');
-    const result = await discoverBoards(orchestrationDeps);
-    res.json(result);
-  } catch (error) {
-    console.error('Discover boards error:', error);
-    res.status(500).json({ error: error.message });
+  if (!scope || !['person', 'team', 'org', 'all'].includes(scope)) {
+    return res.status(400).json({ error: 'scope is required: person, team, org, or all' });
   }
-});
 
-app.post('/api/refresh', requireAdmin, function(req, res) {
-  const hardRefresh = req.body.hardRefresh || false;
+  const roster = deriveRoster();
+  let members;
 
-  const teamsData = readFromStorage('teams.json');
-  const enabledTeams = teamsData?.teams?.filter(t => t.enabled !== false) || [];
+  // Resolve members based on scope
+  if (scope === 'person') {
+    let found = null;
+    for (const org of roster.orgs) {
+      for (const team of Object.values(org.teams)) {
+        found = team.members.find(m => m.jiraDisplayName === name || m.name === name);
+        if (found) break;
+      }
+      if (found) break;
+    }
+    if (!found) {
+      return res.status(404).json({ error: `Person "${name}" not found in roster` });
+    }
+    members = [found];
+  } else if (scope === 'team') {
+    let team = null;
+    const sepIdx = (teamKey || '').indexOf('::');
+    if (sepIdx !== -1) {
+      const oKey = teamKey.substring(0, sepIdx);
+      const tName = teamKey.substring(sepIdx + 2);
+      const org = roster.orgs.find(o => o.key === oKey);
+      if (org) team = org.teams[tName];
+    } else {
+      for (const org of roster.orgs) {
+        if (org.teams[teamKey]) { team = org.teams[teamKey]; break; }
+      }
+    }
+    if (!team) {
+      return res.status(404).json({ error: `Team "${teamKey}" not found in roster` });
+    }
+    members = dedupeMembers(team.members);
+  } else if (scope === 'org') {
+    const org = roster.orgs.find(o => o.key === orgKey);
+    if (!org) {
+      return res.status(404).json({ error: `Org "${orgKey}" not found in roster` });
+    }
+    const allMembers = [];
+    for (const team of Object.values(org.teams)) {
+      allMembers.push(...team.members);
+    }
+    members = dedupeMembers(allMembers);
+  } else {
+    // scope === 'all'
+    const allMembers = [];
+    for (const org of roster.orgs) {
+      for (const team of Object.values(org.teams)) {
+        allMembers.push(...team.members);
+      }
+    }
+    members = dedupeMembers(allMembers);
+  }
 
-  res.json({ status: 'started', boardCount: enabledTeams.length });
+  // For person scope: synchronous — return results directly
+  if (scope === 'person') {
+    try {
+      const member = members[0];
+      const result = { jira: null, github: null, gitlab: null };
+
+      // Jira
+      if (!DEMO_MODE) {
+        const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
+        if (metrics._resolvedName) {
+          persistNameCache();
+          delete metrics._resolvedName;
+        }
+        writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
+        result.jira = metrics;
+      }
+
+      // GitHub
+      if (member.githubUsername) {
+        const ghResults = await fetchContributions([member.githubUsername]);
+        if (ghResults[member.githubUsername]) {
+          const cache = readGithubCache();
+          cache.users[member.githubUsername] = ghResults[member.githubUsername];
+          writeToStorage(GITHUB_CACHE_PATH, cache);
+          result.github = ghResults[member.githubUsername];
+        }
+      }
+
+      // GitLab
+      if (member.gitlabUsername) {
+        const glResults = await fetchGitlabContributions([member.gitlabUsername]);
+        if (glResults[member.gitlabUsername]) {
+          const cache = readGitlabCache();
+          cache.users[member.gitlabUsername] = glResults[member.gitlabUsername];
+          writeToStorage(GITLAB_CACHE_PATH, cache);
+          result.gitlab = glResults[member.gitlabUsername];
+        }
+      }
+
+      saveLastRefreshed();
+      console.log(`[refresh] person "${member.jiraDisplayName}" complete`);
+      return res.json(result);
+    } catch (error) {
+      console.error(`[refresh] person "${name}" error:`, error);
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // For team/org/all: background processing
+  res.json({ status: 'started', memberCount: members.length });
 
   setImmediate(async () => {
     try {
-      console.log(`\nStarting refresh: ${enabledTeams.length} boards (hardRefresh: ${hardRefresh})`);
-      await performRefresh({ ...orchestrationDeps, hardRefresh });
-      console.log('Refresh complete');
-    } catch (error) {
-      console.error('Background refresh error:', error);
+      // Jira metrics with concurrency limit
+      if (!DEMO_MODE) {
+        const CONCURRENCY = 3;
+        let idx = 0;
+        let completed = 0;
+        async function nextJira() {
+          if (idx >= members.length) return;
+          const member = members[idx++];
+          try {
+            console.log(`[refresh] Jira: ${member.jiraDisplayName} (${++completed}/${members.length})`);
+            const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
+            if (metrics._resolvedName) delete metrics._resolvedName;
+            writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
+          } catch (err) {
+            console.error(`[refresh] Jira failed for ${member.jiraDisplayName}:`, err.message);
+          }
+          return nextJira();
+        }
+        const workers = [];
+        for (let w = 0; w < CONCURRENCY; w++) workers.push(nextJira());
+        await Promise.all(workers);
+        persistNameCache();
+      }
+
+      // GitHub contributions
+      const githubUsernames = [...new Set(members.filter(m => m.githubUsername).map(m => m.githubUsername))];
+      if (githubUsernames.length > 0) {
+        try {
+          const results = await fetchContributions(githubUsernames);
+          const cache = readGithubCache();
+          for (const [username, data] of Object.entries(results)) {
+            if (data) cache.users[username] = data;
+          }
+          cache.fetchedAt = new Date().toISOString();
+          writeToStorage(GITHUB_CACHE_PATH, cache);
+          console.log(`[refresh] GitHub: ${Object.keys(results).length} users processed`);
+        } catch (err) {
+          console.error('[refresh] GitHub failed:', err.message);
+        }
+      }
+
+      // GitLab contributions
+      const gitlabUsernames = [...new Set(members.filter(m => m.gitlabUsername).map(m => m.gitlabUsername))];
+      if (gitlabUsernames.length > 0) {
+        try {
+          const results = await fetchGitlabContributions(gitlabUsernames);
+          const cache = readGitlabCache();
+          for (const [username, data] of Object.entries(results)) {
+            if (data) cache.users[username] = data;
+          }
+          cache.fetchedAt = new Date().toISOString();
+          writeToStorage(GITLAB_CACHE_PATH, cache);
+          console.log(`[refresh] GitLab: ${Object.keys(results).length} users processed`);
+        } catch (err) {
+          console.error('[refresh] GitLab failed:', err.message);
+        }
+      }
+
+      // Trends (only for "all" scope)
+      if (scope === 'all') {
+        if (githubUsernames.length > 0) {
+          try {
+            const results = await fetchContributionHistory(githubUsernames);
+            const cache = readGithubHistoryCache();
+            for (const [username, data] of Object.entries(results)) {
+              if (data) cache.users[username] = data;
+            }
+            cache.fetchedAt = new Date().toISOString();
+            writeToStorage(GITHUB_HISTORY_CACHE_PATH, cache);
+            console.log(`[refresh] GitHub history: ${Object.keys(results).length} users processed`);
+          } catch (err) {
+            console.error('[refresh] GitHub history failed:', err.message);
+          }
+        }
+
+        if (gitlabUsernames.length > 0) {
+          try {
+            const results = await fetchGitlabContributionHistory(gitlabUsernames);
+            const cache = readGitlabHistoryCache();
+            for (const [username, data] of Object.entries(results)) {
+              if (data) cache.users[username] = data;
+            }
+            cache.fetchedAt = new Date().toISOString();
+            writeToStorage(GITLAB_HISTORY_CACHE_PATH, cache);
+            console.log(`[refresh] GitLab history: ${Object.keys(results).length} users processed`);
+          } catch (err) {
+            console.error('[refresh] GitLab history failed:', err.message);
+          }
+        }
+      }
+
+      saveLastRefreshed();
+      console.log(`[refresh] ${scope} complete (${members.length} members)`);
+    } catch (err) {
+      console.error(`[refresh] ${scope} error:`, err);
     }
   });
 });
 
-app.get('/api/refresh/stream', function(req, res) {
-  const hardRefresh = req.query.hardRefresh === 'true';
-
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
+function dedupeMembers(members) {
+  const seen = new Set();
+  return members.filter(m => {
+    const key = m.jiraDisplayName || m.name;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
-
-  let clientDisconnected = false;
-  req.on('close', () => { clientDisconnected = true; });
-
-  function sendEvent(data) {
-    if (!clientDisconnected) {
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-    }
-  }
-
-  performRefresh({
-    ...orchestrationDeps,
-    hardRefresh,
-    onProgress: sendEvent
-  }).then(() => {
-    if (!clientDisconnected) res.end();
-  }).catch((error) => {
-    console.error('SSE refresh error:', error);
-    sendEvent({ type: 'error', message: error.message });
-    if (!clientDisconnected) res.end();
-  });
-});
+}
 
 // ─── Routes: Reader ───
 
@@ -670,10 +826,9 @@ app.get('/api/person/:jiraDisplayName/metrics', async function(req, res) {
     const name = decodeURIComponent(req.params.jiraDisplayName);
     const key = sanitizeFilename(name);
     const cachePath = `people/${key}.json`;
-    const forceRefresh = req.query.refresh === 'true';
 
     // Check cache (4-hour TTL, or any age in demo mode)
-    const cached = (!forceRefresh || DEMO_MODE) ? readFromStorage(cachePath) : null;
+    const cached = readFromStorage(cachePath);
     if (cached) {
       if (DEMO_MODE || (cached.fetchedAt && (Date.now() - new Date(cached.fetchedAt).getTime()) < 4 * 60 * 60 * 1000)) {
         return res.json(cached);
@@ -808,137 +963,6 @@ app.get('/api/team/:teamKey/metrics', function(req, res) {
   }
 });
 
-app.post('/api/roster/refresh', requireAdmin, function(req, res) {
-  try {
-    const roster = deriveRoster();
-
-    // Collect unique members across all orgs and teams
-    const seen = new Set();
-    const uniqueMembers = [];
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          if (!seen.has(member.jiraDisplayName)) {
-            seen.add(member.jiraDisplayName);
-            uniqueMembers.push(member);
-          }
-        }
-      }
-    }
-
-    res.json({ status: 'started', memberCount: uniqueMembers.length });
-
-    // Background fetch with concurrency limit of 3
-    setImmediate(async () => {
-      const CONCURRENCY = 3;
-      let i = 0;
-      let completed = 0;
-
-      async function next() {
-        if (i >= uniqueMembers.length) return;
-        const member = uniqueMembers[i++];
-        try {
-          console.log(`[roster-refresh] Fetching metrics for ${member.jiraDisplayName} (${++completed}/${uniqueMembers.length})`);
-          const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
-          if (metrics._resolvedName) {
-            delete metrics._resolvedName;
-          }
-          const key = sanitizeFilename(member.jiraDisplayName);
-          writeToStorage(`people/${key}.json`, metrics);
-        } catch (error) {
-          console.error(`[roster-refresh] Failed for ${member.jiraDisplayName}:`, error.message);
-          completed++;
-        }
-        return next();
-      }
-
-      const workers = [];
-      for (let w = 0; w < CONCURRENCY; w++) {
-        workers.push(next());
-      }
-      await Promise.all(workers);
-      persistNameCache();
-      saveLastRefreshed();
-      console.log(`[roster-refresh] All teams refresh complete (${uniqueMembers.length} members)`);
-    });
-  } catch (error) {
-    console.error('Roster refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/team/:teamKey/refresh', requireAdmin, function(req, res) {
-  try {
-    const teamKey = decodeURIComponent(req.params.teamKey);
-    const roster = deriveRoster();
-
-    // teamKey format: "orgKey::teamName"
-    let team = null;
-    const sepIdx = teamKey.indexOf('::');
-    if (sepIdx !== -1) {
-      const orgKey = teamKey.substring(0, sepIdx);
-      const teamName = teamKey.substring(sepIdx + 2);
-      const org = roster.orgs.find(o => o.key === orgKey);
-      if (org) team = org.teams[teamName];
-    } else {
-      for (const org of roster.orgs) {
-        if (org.teams[teamKey]) {
-          team = org.teams[teamKey];
-          break;
-        }
-      }
-    }
-
-    if (!team) {
-      return res.status(404).json({ error: `Team "${teamKey}" not found in roster` });
-    }
-
-    // Deduplicate members by jiraDisplayName
-    const seen = new Set();
-    const uniqueMembers = team.members.filter(m => {
-      if (seen.has(m.jiraDisplayName)) return false;
-      seen.add(m.jiraDisplayName);
-      return true;
-    });
-
-    res.json({ status: 'started', memberCount: uniqueMembers.length });
-
-    // Background fetch with concurrency limit of 3
-    setImmediate(async () => {
-      const CONCURRENCY = 3;
-      let i = 0;
-
-      async function next() {
-        if (i >= uniqueMembers.length) return;
-        const member = uniqueMembers[i++];
-        try {
-          console.log(`[refresh] Fetching metrics for ${member.jiraDisplayName} (${i}/${uniqueMembers.length})`);
-          const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
-          if (metrics._resolvedName) {
-            delete metrics._resolvedName;
-          }
-          const key = sanitizeFilename(member.jiraDisplayName);
-          writeToStorage(`people/${key}.json`, metrics);
-        } catch (error) {
-          console.error(`[refresh] Failed for ${member.jiraDisplayName}:`, error.message);
-        }
-        return next();
-      }
-
-      const workers = [];
-      for (let w = 0; w < CONCURRENCY; w++) {
-        workers.push(next());
-      }
-      await Promise.all(workers);
-      persistNameCache();
-      console.log(`[refresh] Team "${teamKey}" refresh complete`);
-    });
-  } catch (error) {
-    console.error(`Team refresh error (${req.params.teamKey}):`, error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 app.delete('/api/jira-name-cache', requireAdmin, function(req, res) {
   jiraNameCache = {};
   writeToStorage('jira-name-map.json', {});
@@ -977,66 +1001,6 @@ app.get('/api/github/contributions/:username', function(req, res) {
   }
 });
 
-app.post('/api/github/contributions/:username/refresh', requireAdmin, async function(req, res) {
-  try {
-    const username = decodeURIComponent(req.params.username);
-    const results = await fetchContributions([username]);
-    const cache = readGithubCache();
-
-    if (results[username]) {
-      cache.users[username] = results[username];
-      writeToStorage(GITHUB_CACHE_PATH, cache);
-    }
-
-    res.json(results[username] || null);
-  } catch (error) {
-    console.error('GitHub single user refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/github/refresh', requireAdmin, function(req, res) {
-  try {
-    const roster = deriveRoster();
-
-    // Collect all unique GitHub usernames across all orgs
-    const usernameMap = {}; // githubUsername -> person name
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          if (member.githubUsername && !usernameMap[member.githubUsername]) {
-            usernameMap[member.githubUsername] = member.name;
-          }
-        }
-      }
-    }
-
-    const usernames = Object.keys(usernameMap);
-    res.json({ status: 'started', usernameCount: usernames.length });
-
-    // Fetch in background
-    fetchContributions(usernames).then(function(results) {
-      const cache = readGithubCache();
-
-      for (const [username, data] of Object.entries(results)) {
-        if (data) {
-          cache.users[username] = data;
-        }
-      }
-      cache.fetchedAt = new Date().toISOString();
-
-      writeToStorage(GITHUB_CACHE_PATH, cache);
-      saveLastRefreshed();
-      console.log(`[github] Refresh complete. ${Object.keys(results).length} users processed.`);
-    }).catch(function(err) {
-      console.error('[github] Refresh failed:', err.message);
-    });
-  } catch (error) {
-    console.error('GitHub refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // ─── Routes: GitLab Contributions ───
 
 const { fetchContributions: fetchGitlabContributions, fetchContributionHistory: fetchGitlabContributionHistory } = require('./gitlab/contributions');
@@ -1070,107 +1034,6 @@ app.get('/api/gitlab/contributions/:username', function(req, res) {
     res.json(data);
   } catch (error) {
     console.error('Read GitLab contribution error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/gitlab/contributions/:username/refresh', requireAdmin, async function(req, res) {
-  try {
-    const username = decodeURIComponent(req.params.username);
-    const results = await fetchGitlabContributions([username]);
-    const cache = readGitlabCache();
-
-    if (results[username]) {
-      cache.users[username] = results[username];
-      writeToStorage(GITLAB_CACHE_PATH, cache);
-    }
-
-    res.json(results[username] || null);
-  } catch (error) {
-    console.error('GitLab single user refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/gitlab/refresh', requireAdmin, function(req, res) {
-  try {
-    const roster = deriveRoster();
-
-    // Collect all unique GitLab usernames across all orgs
-    const usernameMap = {}; // gitlabUsername -> person name
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          if (member.gitlabUsername && !usernameMap[member.gitlabUsername]) {
-            usernameMap[member.gitlabUsername] = member.name;
-          }
-        }
-      }
-    }
-
-    const usernames = Object.keys(usernameMap);
-    res.json({ status: 'started', usernameCount: usernames.length });
-
-    // Fetch in background
-    setImmediate(async () => {
-      try {
-        const results = await fetchGitlabContributions(usernames);
-        const cache = readGitlabCache();
-
-        for (const [username, data] of Object.entries(results)) {
-          if (data) {
-            cache.users[username] = data;
-          }
-        }
-        cache.fetchedAt = new Date().toISOString();
-
-        writeToStorage(GITLAB_CACHE_PATH, cache);
-        saveLastRefreshed();
-        console.log(`[gitlab] Refresh complete. ${Object.keys(results).length} users processed.`);
-      } catch (err) {
-        console.error('[gitlab] Refresh failed:', err.message);
-      }
-    });
-  } catch (error) {
-    console.error('GitLab refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/trends/gitlab/refresh', requireAdmin, function(req, res) {
-  try {
-    const roster = deriveRoster();
-    const usernames = [];
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          if (member.gitlabUsername && !usernames.includes(member.gitlabUsername)) {
-            usernames.push(member.gitlabUsername);
-          }
-        }
-      }
-    }
-
-    res.json({ status: 'started', usernameCount: usernames.length });
-
-    setImmediate(async () => {
-      try {
-        const results = await fetchGitlabContributionHistory(usernames);
-        const cache = readGitlabHistoryCache();
-        for (const [username, data] of Object.entries(results)) {
-          if (data) {
-            cache.users[username] = data;
-          }
-        }
-        cache.fetchedAt = new Date().toISOString();
-        writeToStorage(GITLAB_HISTORY_CACHE_PATH, cache);
-        console.log(`[gitlab] History refresh complete. ${Object.keys(results).length} users processed.`);
-      } catch (err) {
-        console.error('[gitlab] History refresh failed:', err.message);
-      }
-    });
-  } catch (error) {
-    console.error('GitLab history refresh error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1311,95 +1174,6 @@ app.get('/api/trends', function(req, res) {
     res.json({ jira, github, gitlab });
   } catch (error) {
     console.error('Trends error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/trends/jira/refresh', requireAdmin, async function(req, res) {
-  try {
-    const roster = deriveRoster();
-    const seen = new Set();
-    const uniqueMembers = [];
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          const name = member.jiraDisplayName || member.name;
-          if (!seen.has(name)) {
-            seen.add(name);
-            uniqueMembers.push(member);
-          }
-        }
-      }
-    }
-
-    res.json({ status: 'started', memberCount: uniqueMembers.length });
-
-    // Background: fetch 365-day metrics for each person
-    setImmediate(async () => {
-      console.log(`[trends] Starting Jira 365-day refresh for ${uniqueMembers.length} members...`);
-      let completed = 0;
-      let failed = 0;
-
-      for (const member of uniqueMembers) {
-        const name = member.jiraDisplayName || member.name;
-        try {
-          const metrics = await fetchPersonMetrics(jiraRequest, name, {
-            lookbackDays: 365,
-            nameCache: jiraNameCache
-          });
-          if (metrics._resolvedName) delete metrics._resolvedName;
-          const key = sanitizeFilename(name);
-          writeToStorage(`people/${key}.json`, metrics);
-          completed++;
-          if (completed % 25 === 0) {
-            console.log(`[trends] Jira refresh progress: ${completed}/${uniqueMembers.length}`);
-          }
-        } catch (error) {
-          failed++;
-          console.error(`[trends] Failed for ${name}:`, error.message);
-        }
-      }
-
-      persistNameCache();
-      console.log(`[trends] Jira refresh complete. ${completed} succeeded, ${failed} failed.`);
-    });
-  } catch (error) {
-    console.error('Trends Jira refresh error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/api/trends/github/refresh', requireAdmin, function(req, res) {
-  try {
-    const roster = deriveRoster();
-    const usernames = [];
-    for (const org of roster.orgs) {
-      for (const team of Object.values(org.teams)) {
-        for (const member of team.members) {
-          if (member.githubUsername && !usernames.includes(member.githubUsername)) {
-            usernames.push(member.githubUsername);
-          }
-        }
-      }
-    }
-
-    res.json({ status: 'started', usernameCount: usernames.length });
-
-    fetchContributionHistory(usernames).then(function(results) {
-      const cache = readGithubHistoryCache();
-      for (const [username, data] of Object.entries(results)) {
-        if (data) {
-          cache.users[username] = data;
-        }
-      }
-      cache.fetchedAt = new Date().toISOString();
-      writeToStorage(GITHUB_HISTORY_CACHE_PATH, cache);
-      console.log(`[github] History refresh complete. ${Object.keys(results).length} users processed.`);
-    }).catch(function(err) {
-      console.error('[github] History refresh failed:', err.message);
-    });
-  } catch (error) {
-    console.error('GitHub history refresh error:', error);
     res.status(500).json({ error: error.message });
   }
 });

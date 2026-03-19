@@ -158,7 +158,7 @@ import { useAuth } from '../composables/useAuth'
 import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
 import { useGitlabStats } from '../composables/useGitlabStats'
-import { refreshAllMetrics, refreshTrendsGithub, refreshTrendsGitlab, getLastRefreshed } from '../services/api'
+import { refreshMetrics, getLastRefreshed } from '../services/api'
 
 export default {
   name: 'App',
@@ -181,8 +181,8 @@ export default {
   setup() {
     const { user: authUser, isAdmin: authIsAdmin } = useAuth()
     const { loadRoster, teams, selectedOrgKey, selectOrg, loading: rosterLoading } = useRoster()
-    const { loadGithubStats, refreshStats } = useGithubStats()
-    const { loadGitlabStats, refreshStats: refreshGitlabStats } = useGitlabStats()
+    const { loadGithubStats } = useGithubStats()
+    const { loadGitlabStats } = useGitlabStats()
     const lastRefreshedAt = ref(null)
     const tick = ref(0)
     const tickTimer = setInterval(() => { tick.value++ }, 30000)
@@ -216,8 +216,6 @@ export default {
       loadRoster,
       loadGithubStats,
       loadGitlabStats,
-      refreshStats,
-      refreshGitlabStats,
       rosterLoading,
       rosterTeams: teams,
       selectedOrgKey,
@@ -433,22 +431,11 @@ export default {
       this.updateHash()
     },
 
-    async handleRefreshAll(event) {
-      const force = event?.shiftKey || false
+    async handleRefreshAll() {
       this.isRefreshing = true
       try {
-        const results = await Promise.allSettled([
-          refreshAllMetrics({ force }),
-          this.refreshStats(),
-          this.refreshGitlabStats(),
-          refreshTrendsGithub(),
-          refreshTrendsGitlab()
-        ])
-        const failed = results.filter(r => r.status === 'rejected')
-        if (failed.length === results.length) {
-          throw failed[0].reason
-        }
-        this.showToast(force ? 'Hard refresh started — ignoring cache' : 'Refresh started — data will update shortly')
+        await refreshMetrics({ scope: 'all' })
+        this.showToast('Refresh started — data will update shortly')
       } catch (err) {
         console.error('Failed to start refresh:', err)
         this.showToast('Failed to start refresh', 'error')

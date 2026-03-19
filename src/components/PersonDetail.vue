@@ -232,7 +232,7 @@ import MetricCard from './MetricCard.vue'
 import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
 import { useGitlabStats } from '../composables/useGitlabStats'
-import { getPersonMetrics } from '../services/api'
+import { getPersonMetrics, refreshMetrics } from '../services/api'
 
 const props = defineProps({
   person: { type: Object, required: true },
@@ -241,8 +241,8 @@ const props = defineProps({
 defineEmits(['back', 'go-dashboard'])
 
 const { getTeamsForPerson } = useRoster()
-const { getContributions: getGithubContributions, refreshUserStats: refreshGithubUserStats } = useGithubStats()
-const { getContributions: getGitlabContributionsFn, loadGitlabStats } = useGitlabStats()
+const { getContributions: getGithubContributions, setUserContributions: setGithubUserData } = useGithubStats()
+const { getContributions: getGitlabContributionsFn, loadGitlabStats, setUserContributions: setGitlabUserData } = useGitlabStats()
 
 const githubContributions = computed(() => getGithubContributions(props.person.githubUsername))
 const githubProfileUrl = props.person.githubUsername
@@ -264,12 +264,18 @@ async function loadMetrics(refresh = false) {
   isLoading.value = true
   error.value = null
   try {
-    const promises = [getPersonMetrics(props.person.jiraDisplayName, { refresh })]
-    if (refresh && props.person.githubUsername) {
-      promises.push(refreshGithubUserStats(props.person.githubUsername))
+    if (refresh) {
+      const result = await refreshMetrics({ scope: 'person', name: props.person.jiraDisplayName })
+      metrics.value = result.jira
+      if (result.github && props.person.githubUsername) {
+        setGithubUserData(props.person.githubUsername, result.github)
+      }
+      if (result.gitlab && props.person.gitlabUsername) {
+        setGitlabUserData(props.person.gitlabUsername, result.gitlab)
+      }
+    } else {
+      metrics.value = await getPersonMetrics(props.person.jiraDisplayName)
     }
-    const [jiraMetrics] = await Promise.all(promises)
-    metrics.value = jiraMetrics
   } catch (err) {
     error.value = err.message
     console.error('Failed to load person metrics:', err)

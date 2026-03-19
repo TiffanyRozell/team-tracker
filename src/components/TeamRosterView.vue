@@ -21,8 +21,8 @@
         <button
           v-if="isAdmin"
           @click="handleRefresh"
-          :disabled="true"
-          title="Refreshes temporarily disabled — Jira is down"
+          :disabled="isRefreshing"
+          title="Refresh all metrics for this team"
           class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
         >
           <svg class="h-4 w-4" :class="{ 'animate-spin': isRefreshing }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -127,7 +127,7 @@ import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
 import { useGitlabStats } from '../composables/useGitlabStats'
 import { useAuth } from '../composables/useAuth'
-import { refreshTeamMetrics, getTeamMetrics } from '../services/api'
+import { refreshMetrics, getTeamMetrics } from '../services/api'
 
 const props = defineProps({
   team: { type: Object, required: true }
@@ -233,7 +233,7 @@ function exportCsv() {
 async function handleRefresh() {
   isRefreshing.value = true
   try {
-    await refreshTeamMetrics(props.team.key)
+    await refreshMetrics({ scope: 'team', teamKey: props.team.key })
   } catch (error) {
     console.error('Failed to refresh team metrics:', error)
   } finally {
