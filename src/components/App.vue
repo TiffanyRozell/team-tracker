@@ -157,7 +157,8 @@ import { computed, ref, onUnmounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
-import { refreshAllMetrics, refreshTrendsGithub, getLastRefreshed } from '../services/api'
+import { useGitlabStats } from '../composables/useGitlabStats'
+import { refreshAllMetrics, refreshTrendsGithub, refreshTrendsGitlab, getLastRefreshed } from '../services/api'
 
 export default {
   name: 'App',
@@ -181,6 +182,7 @@ export default {
     const { user: authUser, isAdmin: authIsAdmin } = useAuth()
     const { loadRoster, teams, selectedOrgKey, selectOrg, loading: rosterLoading } = useRoster()
     const { loadGithubStats, refreshStats } = useGithubStats()
+    const { loadGitlabStats, refreshStats: refreshGitlabStats } = useGitlabStats()
     const lastRefreshedAt = ref(null)
     const tick = ref(0)
     const tickTimer = setInterval(() => { tick.value++ }, 30000)
@@ -213,7 +215,9 @@ export default {
       fetchLastRefreshed,
       loadRoster,
       loadGithubStats,
+      loadGitlabStats,
       refreshStats,
+      refreshGitlabStats,
       rosterLoading,
       rosterTeams: teams,
       selectedOrgKey,
@@ -293,6 +297,7 @@ export default {
         await Promise.all([
           this.loadRoster(),
           this.loadGithubStats(),
+          this.loadGitlabStats(),
           this.fetchLastRefreshed()
         ])
         this.restoreFromHash()
@@ -435,7 +440,9 @@ export default {
         const results = await Promise.allSettled([
           refreshAllMetrics({ force }),
           this.refreshStats(),
-          refreshTrendsGithub()
+          this.refreshGitlabStats(),
+          refreshTrendsGithub(),
+          refreshTrendsGitlab()
         ])
         const failed = results.filter(r => r.status === 'rejected')
         if (failed.length === results.length) {
