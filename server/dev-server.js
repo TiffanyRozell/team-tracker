@@ -21,12 +21,24 @@ const { readFromStorage, writeToStorage, listStorageFiles } = storageModule;
 
 const { createJiraClient } = require('./jira/jira-client');
 const { fetchPersonMetrics } = require('./jira/person-metrics');
+const { fetchGithubData } = require('./github/contributions');
+const { fetchGitlabData } = require('./gitlab/contributions');
 const rosterSync = require('./roster-sync');
 const rosterSyncConfig = require('./roster-sync/config');
 
 if (DEMO_MODE) {
   console.log('Running in DEMO MODE - using fixture data, Jira/GitHub APIs disabled');
 }
+
+// ─── Refresh State Tracker ───
+
+const refreshState = {
+  running: false,
+  scope: null,
+  progress: { completed: 0, total: 0, errors: 0 },
+  sources: { jira: null, github: null, gitlab: null },
+  startedAt: null
+};
 
 const app = express();
 app.use(express.json());
@@ -193,13 +205,105 @@ async function jiraRequest(path, { method = 'GET', body } = {}) {
 // Create Jira client
 const jiraClient = createJiraClient({ jiraRequest, jiraHost: JIRA_HOST });
 
+// ─── Cache paths ───
+
+const GITHUB_CACHE_PATH = 'github-contributions.json';
+const GITHUB_HISTORY_CACHE_PATH = 'github-history.json';
+const GITLAB_CACHE_PATH = 'gitlab-contributions.json';
+const GITLAB_HISTORY_CACHE_PATH = 'gitlab-history.json';
+const GITLAB_USER_ID_CACHE_PATH = 'gitlab-user-ids.json';
+
+function readGithubCache() {
+  return readFromStorage(GITHUB_CACHE_PATH) || { users: {}, fetchedAt: null };
+}
+
+function readGithubHistoryCache() {
+  return readFromStorage(GITHUB_HISTORY_CACHE_PATH) || { users: {}, fetchedAt: null };
+}
+
+function readGitlabCache() {
+  return readFromStorage(GITLAB_CACHE_PATH) || { users: {}, fetchedAt: null };
+}
+
+function readGitlabHistoryCache() {
+  return readFromStorage(GITLAB_HISTORY_CACHE_PATH) || { users: {}, fetchedAt: null };
+}
+
+function loadGitlabUserIdCache() {
+  return readFromStorage(GITLAB_USER_ID_CACHE_PATH) || {};
+}
+
+function saveGitlabUserIdCache(cache) {
+  writeToStorage(GITLAB_USER_ID_CACHE_PATH, cache);
+}
+
+/**
+ * Write single-pass GitHub/GitLab results to both contribution and history caches.
+ * Single-pass functions return { username: { totalContributions, months, fetchedAt } | null }.
+ * We store the full object in the contribution cache, and { months } in the history cache.
+ */
+function writeSinglePassResults(results, contribCachePath, historyCachePath) {
+  const contribCache = readFromStorage(contribCachePath) || { users: {}, fetchedAt: null };
+  const historyCache = readFromStorage(historyCachePath) || { users: {}, fetchedAt: null };
+  const now = new Date().toISOString();
+
+  for (const [username, data] of Object.entries(results)) {
+    if (data) {
+      contribCache.users[username] = data;
+      historyCache.users[username] = { months: data.months || {}, fetchedAt: data.fetchedAt };
+    }
+  }
+
+  contribCache.fetchedAt = now;
+  historyCache.fetchedAt = now;
+  writeToStorage(contribCachePath, contribCache);
+  writeToStorage(historyCachePath, historyCache);
+}
+
 // ─── Routes: Unified Refresh ───
+
+app.get('/api/refresh/status', requireAdmin, function(req, res) {
+  res.json(refreshState);
+});
 
 app.post('/api/refresh', requireAdmin, async function(req, res) {
   const { scope, name, teamKey, orgKey } = req.body || {};
+  const force = req.body?.force === true;
+  const sources = req.body?.sources || { jira: true, github: true, gitlab: true };
 
+  // Validate scope
   if (!scope || !['person', 'team', 'org', 'all'].includes(scope)) {
     return res.status(400).json({ error: 'scope is required: person, team, org, or all' });
+  }
+
+  // Validate force
+  if (req.body?.force !== undefined && typeof req.body.force !== 'boolean') {
+    return res.status(400).json({ error: 'force must be a boolean' });
+  }
+
+  // Validate sources
+  if (req.body?.sources !== undefined) {
+    if (typeof req.body.sources !== 'object' || Array.isArray(req.body.sources)) {
+      return res.status(400).json({ error: 'sources must be an object with jira, github, gitlab boolean keys' });
+    }
+    const validKeys = ['jira', 'github', 'gitlab'];
+    for (const key of Object.keys(req.body.sources)) {
+      if (!validKeys.includes(key)) {
+        return res.status(400).json({ error: `Invalid source key: "${key}". Valid keys: ${validKeys.join(', ')}` });
+      }
+      if (typeof req.body.sources[key] !== 'boolean') {
+        return res.status(400).json({ error: `sources.${key} must be a boolean` });
+      }
+    }
+  }
+
+  // Overlap protection (person scope exempt — it's synchronous)
+  if (scope !== 'person' && refreshState.running) {
+    return res.status(409).json({
+      error: 'Refresh already in progress',
+      scope: refreshState.scope,
+      progress: refreshState.progress
+    });
   }
 
   const roster = deriveRoster();
@@ -257,45 +361,138 @@ app.post('/api/refresh', requireAdmin, async function(req, res) {
     members = dedupeMembers(allMembers);
   }
 
+  // Helper: refresh Jira for a list of members
+  async function refreshJiraMembers(memberList) {
+    if (!sources.jira || DEMO_MODE) return;
+    const CONCURRENCY = 3;
+    let idx = 0;
+    let completed = 0;
+
+    async function nextJira() {
+      if (idx >= memberList.length) return;
+      const member = memberList[idx++];
+      try {
+        completed++;
+        console.log(`[refresh] Jira: ${member.jiraDisplayName} (${completed}/${memberList.length})`);
+        const existingData = force ? null : readFromStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`);
+        const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, {
+          nameCache: jiraNameCache,
+          existingData
+        });
+        if (metrics._resolvedName) delete metrics._resolvedName;
+        writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
+        refreshState.progress.completed++;
+      } catch (err) {
+        console.error(`[refresh] Jira failed for ${member.jiraDisplayName}:`, err.message);
+        refreshState.progress.errors++;
+      }
+      return nextJira();
+    }
+
+    const workers = [];
+    for (let w = 0; w < CONCURRENCY; w++) workers.push(nextJira());
+    await Promise.all(workers);
+    persistNameCache();
+  }
+
+  // Helper: refresh GitHub for a list of usernames
+  async function refreshGithubUsers(usernames) {
+    if (!sources.github || usernames.length === 0) return;
+    try {
+      const existingCache = force ? {} : readGithubCache().users;
+      const results = await fetchGithubData(usernames, {
+        existingData: existingCache,
+        ttlMs: force ? 0 : undefined
+      });
+      writeSinglePassResults(results, GITHUB_CACHE_PATH, GITHUB_HISTORY_CACHE_PATH);
+      console.log(`[refresh] GitHub: ${Object.keys(results).length} users processed`);
+    } catch (err) {
+      console.error('[refresh] GitHub failed:', err.message);
+      refreshState.progress.errors++;
+    }
+  }
+
+  // Helper: refresh GitLab for a list of usernames
+  async function refreshGitlabUsers(usernames) {
+    if (!sources.gitlab || usernames.length === 0) return;
+    try {
+      const userIdCache = loadGitlabUserIdCache();
+      const existingCache = force ? {} : readGitlabCache().users;
+      const results = await fetchGitlabData(usernames, {
+        existingData: force ? {} : existingCache,
+        userIdCache
+      });
+      writeSinglePassResults(results, GITLAB_CACHE_PATH, GITLAB_HISTORY_CACHE_PATH);
+      saveGitlabUserIdCache(userIdCache);
+      console.log(`[refresh] GitLab: ${Object.keys(results).length} users processed`);
+    } catch (err) {
+      console.error('[refresh] GitLab failed:', err.message);
+      refreshState.progress.errors++;
+    }
+  }
+
+  // Collect unique GitHub/GitLab usernames
+  const githubUsernames = [...new Set(members.filter(m => m.githubUsername).map(m => m.githubUsername))];
+  const gitlabUsernames = [...new Set(members.filter(m => m.gitlabUsername).map(m => m.gitlabUsername))];
+
   // For person scope: synchronous — return results directly
   if (scope === 'person') {
     try {
       const member = members[0];
       const result = { jira: null, github: null, gitlab: null };
 
+      const promises = [];
+
       // Jira
-      if (!DEMO_MODE) {
-        const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
-        if (metrics._resolvedName) {
-          persistNameCache();
-          delete metrics._resolvedName;
-        }
-        writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
-        result.jira = metrics;
+      if (sources.jira && !DEMO_MODE) {
+        promises.push((async () => {
+          const existingData = force ? null : readFromStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`);
+          const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, {
+            nameCache: jiraNameCache,
+            existingData
+          });
+          if (metrics._resolvedName) {
+            persistNameCache();
+            delete metrics._resolvedName;
+          }
+          writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
+          result.jira = metrics;
+        })());
       }
 
       // GitHub
-      if (member.githubUsername) {
-        const ghResults = await fetchContributions([member.githubUsername]);
-        if (ghResults[member.githubUsername]) {
-          const cache = readGithubCache();
-          cache.users[member.githubUsername] = ghResults[member.githubUsername];
-          writeToStorage(GITHUB_CACHE_PATH, cache);
-          result.github = ghResults[member.githubUsername];
-        }
+      if (sources.github && member.githubUsername) {
+        promises.push((async () => {
+          const existingCache = force ? {} : readGithubCache().users;
+          const ghResults = await fetchGithubData([member.githubUsername], {
+            existingData: existingCache,
+            ttlMs: force ? 0 : undefined
+          });
+          if (ghResults[member.githubUsername]) {
+            writeSinglePassResults(ghResults, GITHUB_CACHE_PATH, GITHUB_HISTORY_CACHE_PATH);
+            result.github = ghResults[member.githubUsername];
+          }
+        })());
       }
 
       // GitLab
-      if (member.gitlabUsername) {
-        const glResults = await fetchGitlabContributions([member.gitlabUsername]);
-        if (glResults[member.gitlabUsername]) {
-          const cache = readGitlabCache();
-          cache.users[member.gitlabUsername] = glResults[member.gitlabUsername];
-          writeToStorage(GITLAB_CACHE_PATH, cache);
-          result.gitlab = glResults[member.gitlabUsername];
-        }
+      if (sources.gitlab && member.gitlabUsername) {
+        promises.push((async () => {
+          const userIdCache = loadGitlabUserIdCache();
+          const existingCache = force ? {} : readGitlabCache().users;
+          const glResults = await fetchGitlabData([member.gitlabUsername], {
+            existingData: force ? {} : existingCache,
+            userIdCache
+          });
+          if (glResults[member.gitlabUsername]) {
+            writeSinglePassResults(glResults, GITLAB_CACHE_PATH, GITLAB_HISTORY_CACHE_PATH);
+            result.gitlab = glResults[member.gitlabUsername];
+          }
+          saveGitlabUserIdCache(userIdCache);
+        })());
       }
 
+      await Promise.allSettled(promises);
       saveLastRefreshed();
       console.log(`[refresh] person "${member.jiraDisplayName}" complete`);
       return res.json(result);
@@ -306,105 +503,63 @@ app.post('/api/refresh', requireAdmin, async function(req, res) {
   }
 
   // For team/org/all: background processing
+  refreshState.running = true;
+  refreshState.scope = scope;
+  refreshState.startedAt = new Date().toISOString();
+  refreshState.progress = { completed: 0, total: members.length, errors: 0 };
+  refreshState.sources = {
+    jira: sources.jira ? 'pending' : 'skipped',
+    github: sources.github ? 'pending' : 'skipped',
+    gitlab: sources.gitlab ? 'pending' : 'skipped'
+  };
+
   res.json({ status: 'started', memberCount: members.length });
 
   setImmediate(async () => {
     try {
-      // Jira metrics with concurrency limit
-      if (!DEMO_MODE) {
-        const CONCURRENCY = 3;
-        let idx = 0;
-        let completed = 0;
-        async function nextJira() {
-          if (idx >= members.length) return;
-          const member = members[idx++];
+      // Run all three sources concurrently
+      await Promise.allSettled([
+        (async () => {
+          if (!sources.jira) return;
+          refreshState.sources.jira = 'running';
           try {
-            console.log(`[refresh] Jira: ${member.jiraDisplayName} (${++completed}/${members.length})`);
-            const metrics = await fetchPersonMetrics(jiraRequest, member.jiraDisplayName, { nameCache: jiraNameCache });
-            if (metrics._resolvedName) delete metrics._resolvedName;
-            writeToStorage(`people/${sanitizeFilename(member.jiraDisplayName)}.json`, metrics);
+            await refreshJiraMembers(members);
+            refreshState.sources.jira = 'done';
           } catch (err) {
-            console.error(`[refresh] Jira failed for ${member.jiraDisplayName}:`, err.message);
+            refreshState.sources.jira = 'error';
+            console.error('[refresh] Jira source error:', err.message);
           }
-          return nextJira();
-        }
-        const workers = [];
-        for (let w = 0; w < CONCURRENCY; w++) workers.push(nextJira());
-        await Promise.all(workers);
-        persistNameCache();
-      }
-
-      // GitHub contributions
-      const githubUsernames = [...new Set(members.filter(m => m.githubUsername).map(m => m.githubUsername))];
-      if (githubUsernames.length > 0) {
-        try {
-          const results = await fetchContributions(githubUsernames);
-          const cache = readGithubCache();
-          for (const [username, data] of Object.entries(results)) {
-            if (data) cache.users[username] = data;
-          }
-          cache.fetchedAt = new Date().toISOString();
-          writeToStorage(GITHUB_CACHE_PATH, cache);
-          console.log(`[refresh] GitHub: ${Object.keys(results).length} users processed`);
-        } catch (err) {
-          console.error('[refresh] GitHub failed:', err.message);
-        }
-      }
-
-      // GitLab contributions
-      const gitlabUsernames = [...new Set(members.filter(m => m.gitlabUsername).map(m => m.gitlabUsername))];
-      if (gitlabUsernames.length > 0) {
-        try {
-          const results = await fetchGitlabContributions(gitlabUsernames);
-          const cache = readGitlabCache();
-          for (const [username, data] of Object.entries(results)) {
-            if (data) cache.users[username] = data;
-          }
-          cache.fetchedAt = new Date().toISOString();
-          writeToStorage(GITLAB_CACHE_PATH, cache);
-          console.log(`[refresh] GitLab: ${Object.keys(results).length} users processed`);
-        } catch (err) {
-          console.error('[refresh] GitLab failed:', err.message);
-        }
-      }
-
-      // Trends (only for "all" scope)
-      if (scope === 'all') {
-        if (githubUsernames.length > 0) {
+        })(),
+        (async () => {
+          if (!sources.github || githubUsernames.length === 0) return;
+          refreshState.sources.github = 'running';
           try {
-            const results = await fetchContributionHistory(githubUsernames);
-            const cache = readGithubHistoryCache();
-            for (const [username, data] of Object.entries(results)) {
-              if (data) cache.users[username] = data;
-            }
-            cache.fetchedAt = new Date().toISOString();
-            writeToStorage(GITHUB_HISTORY_CACHE_PATH, cache);
-            console.log(`[refresh] GitHub history: ${Object.keys(results).length} users processed`);
+            await refreshGithubUsers(githubUsernames);
+            refreshState.sources.github = 'done';
           } catch (err) {
-            console.error('[refresh] GitHub history failed:', err.message);
+            refreshState.sources.github = 'error';
+            console.error('[refresh] GitHub source error:', err.message);
           }
-        }
-
-        if (gitlabUsernames.length > 0) {
+        })(),
+        (async () => {
+          if (!sources.gitlab || gitlabUsernames.length === 0) return;
+          refreshState.sources.gitlab = 'running';
           try {
-            const results = await fetchGitlabContributionHistory(gitlabUsernames);
-            const cache = readGitlabHistoryCache();
-            for (const [username, data] of Object.entries(results)) {
-              if (data) cache.users[username] = data;
-            }
-            cache.fetchedAt = new Date().toISOString();
-            writeToStorage(GITLAB_HISTORY_CACHE_PATH, cache);
-            console.log(`[refresh] GitLab history: ${Object.keys(results).length} users processed`);
+            await refreshGitlabUsers(gitlabUsernames);
+            refreshState.sources.gitlab = 'done';
           } catch (err) {
-            console.error('[refresh] GitLab history failed:', err.message);
+            refreshState.sources.gitlab = 'error';
+            console.error('[refresh] GitLab source error:', err.message);
           }
-        }
-      }
+        })()
+      ]);
 
       saveLastRefreshed();
       console.log(`[refresh] ${scope} complete (${members.length} members)`);
     } catch (err) {
       console.error(`[refresh] ${scope} error:`, err);
+    } finally {
+      refreshState.running = false;
     }
   });
 });
@@ -971,14 +1126,6 @@ app.delete('/api/jira-name-cache', requireAdmin, function(req, res) {
 
 // ─── Routes: GitHub Contributions ───
 
-const { fetchContributions } = require('./github/contributions');
-
-const GITHUB_CACHE_PATH = 'github-contributions.json';
-
-function readGithubCache() {
-  return readFromStorage(GITHUB_CACHE_PATH) || { users: {}, fetchedAt: null };
-}
-
 app.get('/api/github/contributions', function(req, res) {
   try {
     const cache = readGithubCache();
@@ -1003,19 +1150,6 @@ app.get('/api/github/contributions/:username', function(req, res) {
 
 // ─── Routes: GitLab Contributions ───
 
-const { fetchContributions: fetchGitlabContributions, fetchContributionHistory: fetchGitlabContributionHistory } = require('./gitlab/contributions');
-
-const GITLAB_CACHE_PATH = 'gitlab-contributions.json';
-const GITLAB_HISTORY_CACHE_PATH = 'gitlab-history.json';
-
-function readGitlabCache() {
-  return readFromStorage(GITLAB_CACHE_PATH) || { users: {}, fetchedAt: null };
-}
-
-function readGitlabHistoryCache() {
-  return readFromStorage(GITLAB_HISTORY_CACHE_PATH) || { users: {}, fetchedAt: null };
-}
-
 app.get('/api/gitlab/contributions', function(req, res) {
   try {
     const cache = readGitlabCache();
@@ -1039,14 +1173,6 @@ app.get('/api/gitlab/contributions/:username', function(req, res) {
 });
 
 // ─── Routes: Trends ───
-
-const { fetchContributionHistory } = require('./github/contributions');
-
-const GITHUB_HISTORY_CACHE_PATH = 'github-history.json';
-
-function readGithubHistoryCache() {
-  return readFromStorage(GITHUB_HISTORY_CACHE_PATH) || { users: {}, fetchedAt: null };
-}
 
 /**
  * Build Jira trends from cached person metrics files.

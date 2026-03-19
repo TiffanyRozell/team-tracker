@@ -60,7 +60,7 @@
           </div>
         </div>
         <button
-          @click="loadMetrics(true)"
+          @click="showRefreshModal = true"
           :disabled="isLoading"
           class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center gap-1.5"
         >
@@ -71,6 +71,13 @@
         </button>
       </div>
     </div>
+
+    <RefreshModal
+      v-if="showRefreshModal"
+      :scopeLabel="`Refresh data for ${person.name}`"
+      @confirm="handleRefreshConfirm"
+      @cancel="showRefreshModal = false"
+    />
 
     <!-- Stale data warning -->
     <div v-if="metrics?.stale" class="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-6 flex items-start gap-3">
@@ -229,6 +236,7 @@
 import { ref, computed, onMounted } from 'vue'
 import SpecialtyBadge from './SpecialtyBadge.vue'
 import MetricCard from './MetricCard.vue'
+import RefreshModal from './RefreshModal.vue'
 import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
 import { useGitlabStats } from '../composables/useGitlabStats'
@@ -257,15 +265,26 @@ const gitlabProfileUrl = props.person.gitlabUsername
 const metrics = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
+const showRefreshModal = ref(false)
 
 const personTeams = getTeamsForPerson(props.person.jiraDisplayName)
 
-async function loadMetrics(refresh = false) {
+async function handleRefreshConfirm({ force, sources }) {
+  showRefreshModal.value = false
+  await loadMetrics({ refresh: true, force, sources })
+}
+
+async function loadMetrics({ refresh = false, force, sources } = {}) {
   isLoading.value = true
   error.value = null
   try {
     if (refresh) {
-      const result = await refreshMetrics({ scope: 'person', name: props.person.jiraDisplayName })
+      const result = await refreshMetrics({
+        scope: 'person',
+        name: props.person.jiraDisplayName,
+        force,
+        sources
+      })
       metrics.value = result.jira
       if (result.github && props.person.githubUsername) {
         setGithubUserData(props.person.githubUsername, result.github)

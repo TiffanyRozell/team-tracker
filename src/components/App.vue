@@ -56,9 +56,9 @@
             >{{ lastRefreshedLabel }}</span>
             <button
               v-if="authUser && authIsAdmin"
-              @click="handleRefreshAll($event)"
+              @click="showRefreshModal = true"
               :disabled="isRefreshing"
-              title="Refresh all metrics (Shift+click for hard refresh)"
+              title="Refresh all metrics"
               class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
             >
               <RefreshCw :size="16" :class="{ 'animate-spin': isRefreshing }" />
@@ -128,6 +128,13 @@
       </main>
     </div>
 
+    <RefreshModal
+      v-if="showRefreshModal"
+      scopeLabel="Refresh data for all teams and members"
+      @confirm="handleRefreshAllConfirm"
+      @cancel="showRefreshModal = false"
+    />
+
     <Toast
       v-for="toast in toasts"
       :key="toast.id"
@@ -153,6 +160,7 @@ import UserManagement from './UserManagement.vue'
 import SettingsView from './SettingsView.vue'
 import SetupBanner from './SetupBanner.vue'
 import AppSidebar from './AppSidebar.vue'
+import RefreshModal from './RefreshModal.vue'
 import { computed, ref, onUnmounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useRoster } from '../composables/useRoster'
@@ -176,7 +184,8 @@ export default {
     UserManagement,
     SettingsView,
     SetupBanner,
-    AppSidebar
+    AppSidebar,
+    RefreshModal
   },
   setup() {
     const { user: authUser, isAdmin: authIsAdmin } = useAuth()
@@ -229,6 +238,7 @@ export default {
       selectedPerson: null,
       isLoading: false,
       isRefreshing: false,
+      showRefreshModal: false,
       sidebarCollapsed: false,
       mobileMenuOpen: false,
       toasts: [],
@@ -431,10 +441,11 @@ export default {
       this.updateHash()
     },
 
-    async handleRefreshAll() {
+    async handleRefreshAllConfirm({ force, sources }) {
+      this.showRefreshModal = false
       this.isRefreshing = true
       try {
-        await refreshMetrics({ scope: 'all' })
+        await refreshMetrics({ scope: 'all', force, sources })
         this.showToast('Refresh started — data will update shortly')
       } catch (err) {
         console.error('Failed to start refresh:', err)

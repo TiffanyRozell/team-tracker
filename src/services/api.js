@@ -139,11 +139,11 @@ export async function getTeamMetrics(teamKey, onData) {
 
 // ─── Unified Refresh ───
 
-export async function refreshMetrics({ scope, name, teamKey, orgKey } = {}) {
+export async function refreshMetrics({ scope, name, teamKey, orgKey, force, sources } = {}) {
   return apiRequest('/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ scope, name, teamKey, orgKey })
+    body: JSON.stringify({ scope, name, teamKey, orgKey, force, sources })
   })
 }
 

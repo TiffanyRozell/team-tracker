@@ -20,7 +20,7 @@
       <div class="flex items-center gap-3">
         <button
           v-if="isAdmin"
-          @click="handleRefresh"
+          @click="showRefreshModal = true"
           :disabled="isRefreshing"
           title="Refresh all metrics for this team"
           class="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-md font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
@@ -112,6 +112,13 @@
       :issues="teamMetrics?.resolvedIssues || []"
       @close="showResolvedIssues = false"
     />
+
+    <RefreshModal
+      v-if="showRefreshModal"
+      :scopeLabel="`Refresh data for team &quot;${team.displayName}&quot; (${uniqueCount} members)`"
+      @confirm="handleRefreshConfirm"
+      @cancel="showRefreshModal = false"
+    />
   </div>
 </template>
 
@@ -122,6 +129,7 @@ import PersonTable from './PersonTable.vue'
 import ViewToggle from './ViewToggle.vue'
 import MetricCard from './MetricCard.vue'
 import ResolvedIssuesModal from './ResolvedIssuesModal.vue'
+import RefreshModal from './RefreshModal.vue'
 import { useViewPreference } from '../composables/useViewPreference'
 import { useRoster } from '../composables/useRoster'
 import { useGithubStats } from '../composables/useGithubStats'
@@ -142,6 +150,7 @@ const { isAdmin } = useAuth()
 const isRefreshing = ref(false)
 const teamMetrics = ref(null)
 const showResolvedIssues = ref(false)
+const showRefreshModal = ref(false)
 
 async function fetchTeamMetrics() {
   try {
@@ -230,10 +239,11 @@ function exportCsv() {
   URL.revokeObjectURL(url)
 }
 
-async function handleRefresh() {
+async function handleRefreshConfirm({ force, sources }) {
+  showRefreshModal.value = false
   isRefreshing.value = true
   try {
-    await refreshMetrics({ scope: 'team', teamKey: props.team.key })
+    await refreshMetrics({ scope: 'team', teamKey: props.team.key, force, sources })
   } catch (error) {
     console.error('Failed to refresh team metrics:', error)
   } finally {
