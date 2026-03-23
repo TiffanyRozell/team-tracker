@@ -253,7 +253,7 @@ app.get('/api/refresh/status', requireAdmin, function(req, res) {
   res.json(refreshState);
 });
 
-app.post('/api/refresh', requireAdmin, async function(req, res) {
+app.post('/api/refresh', async function(req, res) {
   const { scope, name, teamKey, orgKey } = req.body || {};
   const force = req.body?.force === true;
   const sources = req.body?.sources || { jira: true, github: true, gitlab: true };
@@ -261,6 +261,11 @@ app.post('/api/refresh', requireAdmin, async function(req, res) {
   // Validate scope
   if (!scope || !['person', 'team', 'org', 'all'].includes(scope)) {
     return res.status(400).json({ error: 'scope is required: person, team, org, or all' });
+  }
+
+  // Require admin for non-person scopes
+  if (scope !== 'person' && !req.isAdmin) {
+    return res.status(403).json({ error: 'Admin access required for team, org, and all refreshes' });
   }
 
   // Validate force
@@ -972,48 +977,11 @@ app.get('/api/person/:jiraDisplayName/metrics', async function(req, res) {
     const key = sanitizeFilename(name);
     const cachePath = `people/${key}.json`;
 
-    // Check cache (4-hour TTL, or any age in demo mode)
     const cached = readFromStorage(cachePath);
     if (cached) {
-      if (DEMO_MODE || (cached.fetchedAt && (Date.now() - new Date(cached.fetchedAt).getTime()) < 4 * 60 * 60 * 1000)) {
-        return res.json(cached);
-      }
+      return res.json(cached);
     }
-
-    if (DEMO_MODE) {
-      return res.status(404).json({ error: `No demo data for ${name}` });
-    }
-
-    // Look up email from roster for more reliable Jira resolution
-    let personEmail = null;
-    try {
-      const roster = deriveRoster();
-      for (const org of roster.orgs) {
-        for (const team of Object.values(org.teams)) {
-          const found = team.members.find(m => m.jiraDisplayName === name || m.name === name);
-          if (found) { personEmail = found.email; break; }
-        }
-        if (personEmail) break;
-      }
-    } catch { /* roster lookup is best-effort */ }
-
-    // Fetch from Jira, fall back to stale cache if Jira is unavailable
-    try {
-      const projectKeys = jiraSyncConfig.getProjectKeys(storageModule);
-      const metrics = await fetchPersonMetrics(jiraRequest, name, { nameCache: jiraNameCache, email: personEmail, projectKeys });
-      if (metrics._resolvedName) {
-        persistNameCache();
-        delete metrics._resolvedName;
-      }
-      writeToStorage(cachePath, metrics);
-      return res.json(metrics);
-    } catch (jiraErr) {
-      if (cached) {
-        console.warn(`Jira fetch failed for ${name}, returning stale cache:`, jiraErr.message);
-        return res.json({ ...cached, stale: true, staleReason: 'Jira is temporarily unavailable' });
-      }
-      throw jiraErr;
-    }
+    return res.status(404).json({ error: `No cached data for ${name}. Trigger a refresh to fetch data.` });
   } catch (error) {
     console.error(`Person metrics error (${req.params.jiraDisplayName}):`, error);
     res.status(500).json({ error: error.message });
