@@ -1397,8 +1397,8 @@ app.post('/api/allowlist', requireAdmin, function(req, res) {
     }
 
     const normalized = email.trim().toLowerCase();
-    if (!normalized.endsWith('@redhat.com')) {
-      return res.status(400).json({ error: 'Only @redhat.com email addresses are allowed' });
+    if (!normalized.includes('@') || normalized.indexOf('@') === 0 || normalized.indexOf('@') === normalized.length - 1) {
+      return res.status(400).json({ error: 'A valid email address is required' });
     }
 
     const data = readFromStorage('allowlist.json') || { emails: [] };
