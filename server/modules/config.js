@@ -196,7 +196,8 @@ function sanitizeForPublic(mod) {
     type: mod.type,
     description: mod.description,
     icon: mod.icon,
-    order: mod.order
+    order: mod.order,
+    lastSyncStatus: mod.lastSyncStatus || null
   };
 }
 
