@@ -2,6 +2,7 @@ import { defineAsyncComponent } from 'vue'
 
 const manifestModules = import.meta.glob('/modules/*/module.json', { eager: true })
 const clientEntries = import.meta.glob('/modules/*/client/index.js')
+const settingsComponents = import.meta.glob('/modules/*/client/components/*Settings.vue')
 
 export function loadModuleManifests() {
   const modules = []
@@ -24,7 +25,12 @@ export function loadModuleSettingsComponent(slug, settingsPath) {
   if (settingsPath.includes('..')) {
     throw new Error(`Invalid settings path for module "${slug}": path traversal not allowed`)
   }
-  return defineAsyncComponent(() =>
-    import(`/modules/${slug}/${settingsPath}`)
-  )
+  // Normalize ./client/... to client/...
+  const normalized = settingsPath.replace(/^\.\//, '')
+  const globKey = `/modules/${slug}/${normalized}`
+  const loader = settingsComponents[globKey]
+  if (!loader) {
+    throw new Error(`Settings component not found for module "${slug}": ${globKey}`)
+  }
+  return defineAsyncComponent(loader)
 }
