@@ -1,12 +1,12 @@
 <template>
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-800">
         <tr>
           <th
             v-for="col in columns"
             :key="col.key"
-            class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700"
+            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
             @click="toggleSort(col.key)"
           >
             <span class="inline-flex items-center gap-1">
@@ -18,50 +18,50 @@
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
         <tr
           v-for="member in sortedMembers"
           :key="member.jiraDisplayName"
-          class="hover:bg-gray-50 cursor-pointer"
+          class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
           @click="$emit('select', member)"
         >
-          <td class="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
+          <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">
             {{ member.name }}
           </td>
           <td v-if="primaryDisplayField" class="px-4 py-2 text-sm whitespace-nowrap">
             <DynamicFieldBadge :value="member.customFields?.[primaryDisplayField]" />
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
             {{ member.manager || '—' }}
           </td>
           <td
             v-for="field in nonPrimaryVisibleFields"
             :key="'cf-' + field.key"
-            class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap"
+            class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap"
           >
             {{ member.customFields?.[field.key] || '—' }}
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
-            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 italic">no Jira user</span>
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 dark:text-gray-500 italic">no Jira user</span>
             <template v-else>{{ getMemberMetric(member, 'resolvedCount') ?? '—' }}</template>
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
-            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 italic">no Jira user</span>
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 dark:text-gray-500 italic">no Jira user</span>
             <template v-else>{{ getMemberMetric(member, 'resolvedPoints') ?? '—' }}</template>
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
-            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 italic">no Jira user</span>
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span v-if="getMemberMetric(member, 'nameNotFound')" class="text-gray-400 dark:text-gray-500 italic">no Jira user</span>
             <template v-else>{{ getMemberMetric(member, 'avgCycleTimeDays') != null ? getMemberMetric(member, 'avgCycleTimeDays') + 'd' : '—' }}</template>
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
             <template v-if="getGithubContribCount(member) != null">{{ getGithubContribCount(member) }}</template>
-            <span v-else-if="member.githubUsername" class="text-gray-300">—</span>
-            <span v-else class="text-gray-300 italic text-xs" title="GitHub username not configured">no GitHub</span>
+            <span v-else-if="member.githubUsername" class="text-gray-300 dark:text-gray-600">—</span>
+            <span v-else class="text-gray-300 dark:text-gray-600 italic text-xs" title="GitHub username not configured">no GitHub</span>
           </td>
-          <td class="px-4 py-2 text-sm text-gray-500 whitespace-nowrap">
+          <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
             <template v-if="getGitlabContribCount(member) != null">{{ getGitlabContribCount(member) }}</template>
-            <span v-else-if="member.gitlabUsername" class="text-gray-300">—</span>
-            <span v-else class="text-gray-300 italic text-xs" title="GitLab username not configured">no GitLab</span>
+            <span v-else-if="member.gitlabUsername" class="text-gray-300 dark:text-gray-600">—</span>
+            <span v-else class="text-gray-300 dark:text-gray-600 italic text-xs" title="GitLab username not configured">no GitLab</span>
           </td>
           <td class="px-4 py-2 text-sm whitespace-nowrap">
             <span
@@ -70,7 +70,7 @@
             >
               {{ getTeamCount(member) }} teams
             </span>
-            <span v-else class="text-gray-400">1</span>
+            <span v-else class="text-gray-400 dark:text-gray-500">1</span>
           </td>
         </tr>
       </tbody>

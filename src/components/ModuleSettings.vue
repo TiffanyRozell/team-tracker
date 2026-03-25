@@ -1,12 +1,12 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h3 class="text-lg font-semibold text-gray-900">Registered Modules</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Registered Modules</h3>
       <div class="flex gap-2">
         <button
           @click="handleSyncAll"
           :disabled="syncingAll"
-          class="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          class="px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 disabled:opacity-50"
         >
           {{ syncingAll ? 'Syncing...' : 'Sync All' }}
         </button>
@@ -24,23 +24,23 @@
       <div
         v-for="mod in modules"
         :key="mod.slug"
-        class="bg-white border border-gray-200 rounded-lg p-4"
+        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
       >
         <div class="flex items-start justify-between">
           <div>
             <div class="flex items-center gap-2">
-              <h4 class="font-medium text-gray-900">{{ mod.name }}</h4>
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ mod.name }}</h4>
               <span class="px-2 py-0.5 text-[10px] font-medium rounded-full"
-                :class="mod.type === 'built-in' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'">
+                :class="mod.type === 'built-in' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'">
                 {{ mod.type }}
               </span>
             </div>
-            <p class="text-sm text-gray-500 mt-1">{{ mod.description }}</p>
-            <div v-if="mod.type === 'git-static'" class="mt-2 text-xs text-gray-400 space-y-0.5">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ mod.description }}</p>
+            <div v-if="mod.type === 'git-static'" class="mt-2 text-xs text-gray-400 dark:text-gray-500 space-y-0.5">
               <p v-if="mod.gitUrl">Repo: {{ mod.gitUrl }}</p>
               <p v-if="mod.gitBranch">Branch: {{ mod.gitBranch }}</p>
               <p v-if="mod.lastSyncAt">Last synced: {{ formatDate(mod.lastSyncAt) }}</p>
-              <p v-if="mod.lastSyncStatus" :class="mod.lastSyncStatus === 'error' ? 'text-red-500' : 'text-green-500'">
+              <p v-if="mod.lastSyncStatus" :class="mod.lastSyncStatus === 'error' ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'">
                 Status: {{ mod.lastSyncStatus }}
                 <span v-if="mod.lastSyncError"> — {{ mod.lastSyncError }}</span>
               </p>
@@ -52,19 +52,19 @@
               v-if="mod.type === 'git-static'"
               @click="handleSync(mod.slug)"
               :disabled="syncingModules.has(mod.slug)"
-              class="px-2 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
+              class="px-2 py-1 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 disabled:opacity-50"
             >
               {{ syncingModules.has(mod.slug) ? 'Syncing...' : 'Sync' }}
             </button>
             <button
               @click="startEdit(mod)"
-              class="px-2 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50"
+              class="px-2 py-1 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50"
             >
               Edit
             </button>
             <button
               @click="handleDelete(mod.slug, mod.name)"
-              class="px-2 py-1 text-xs text-red-600 border border-red-200 rounded hover:bg-red-50"
+              class="px-2 py-1 text-xs text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
             >
               Delete
             </button>
@@ -72,7 +72,7 @@
         </div>
       </div>
 
-      <p v-if="modules.length === 0" class="text-sm text-gray-400 text-center py-8">
+      <p v-if="modules.length === 0" class="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
         No modules registered.
       </p>
     </div>
@@ -83,39 +83,39 @@
       class="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
       @click.self="closeForm"
     >
-      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-lg mx-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           {{ editingModule ? 'Edit Module' : 'Add Module' }}
         </h3>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="My Dashboard" />
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
+            <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="My Dashboard" />
           </div>
 
           <div v-if="!editingModule">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-            <input v-model="form.slug" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="my-dashboard" />
-            <p class="text-xs text-gray-400 mt-1">Lowercase letters, numbers, and hyphens only</p>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slug</label>
+            <input v-model="form.slug" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="my-dashboard" />
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Lowercase letters, numbers, and hyphens only</p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select v-model="form.type" :disabled="!!editingModule" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+            <select v-model="form.type" :disabled="!!editingModule" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
               <option value="git-static">Git Static</option>
               <option value="built-in">Built-in</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <input v-model="form.description" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="What this module does" />
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <input v-model="form.description" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="What this module does" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Icon</label>
-            <select v-model="form.icon" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Icon</label>
+            <select v-model="form.icon" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
               <option value="bar-chart">Bar Chart</option>
               <option value="search">Search</option>
               <option value="activity">Activity</option>
@@ -130,34 +130,34 @@
           <!-- Git-static fields -->
           <template v-if="form.type === 'git-static'">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Git URL</label>
-              <input v-model="form.gitUrl" type="url" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="https://github.com/user/repo" />
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Git URL</label>
+              <input v-model="form.gitUrl" type="url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="https://github.com/user/repo" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-              <input v-model="form.gitBranch" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="main" />
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Branch</label>
+              <input v-model="form.gitBranch" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="main" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Subdirectory</label>
-              <input v-model="form.gitSubdirectory" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="/" />
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subdirectory</label>
+              <input v-model="form.gitSubdirectory" type="text" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="/" />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Token (optional, for private repos)</label>
-              <input v-model="form.gitToken" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Leave blank for public repos" />
-              <p v-if="editingModule && form.gitToken === '••••••••'" class="text-xs text-gray-400 mt-1">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Token (optional, for private repos)</label>
+              <input v-model="form.gitToken" type="password" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Leave blank for public repos" />
+              <p v-if="editingModule && form.gitToken === '••••••••'" class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Token is set. Clear the field and type a new one to change it, or leave as-is to keep current token.
               </p>
             </div>
           </template>
         </div>
 
-        <div v-if="formError" class="mt-3 text-sm text-red-600">{{ formError }}</div>
+        <div v-if="formError" class="mt-3 text-sm text-red-600 dark:text-red-400">{{ formError }}</div>
 
         <div class="flex justify-end gap-3 mt-6">
-          <button @click="closeForm" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
+          <button @click="closeForm" class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
             Cancel
           </button>
           <button

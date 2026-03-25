@@ -1,18 +1,18 @@
 <template>
   <div>
-    <ul class="divide-y divide-gray-100">
+    <ul class="divide-y divide-gray-100 dark:divide-gray-700">
       <li
         v-for="comp in components"
         :key="comp"
         class="flex items-center justify-between py-2"
       >
-        <span class="text-sm text-gray-800">{{ comp }}</span>
+        <span class="text-sm text-gray-800 dark:text-gray-200">{{ comp }}</span>
         <a
           v-if="rfeCounts[comp]"
           :href="buildRfeUrl(comp)"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors"
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/30 transition-colors"
         >
           {{ rfeCounts[comp] }} RFEs
           <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -21,7 +21,7 @@
         </a>
       </li>
     </ul>
-    <div v-if="components.length === 0" class="text-sm text-gray-500 py-2">
+    <div v-if="components.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-2">
       No components assigned.
     </div>
   </div>

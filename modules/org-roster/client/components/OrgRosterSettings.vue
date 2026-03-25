@@ -1,50 +1,50 @@
 <template>
   <div class="space-y-6">
-    <h3 class="text-lg font-semibold text-gray-900">Org Roster Settings</h3>
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Org Roster Settings</h3>
 
     <!-- Sync Status -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <h4 class="text-sm font-medium text-gray-700 mb-3">Sync Status</h4>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Sync Status</h4>
       <div v-if="syncStatus" class="space-y-2 text-sm">
         <div class="flex justify-between">
-          <span class="text-gray-500">Last sync:</span>
-          <span class="text-gray-800">{{ syncStatus.lastSyncAt ? new Date(syncStatus.lastSyncAt).toLocaleString() : 'Never' }}</span>
+          <span class="text-gray-500 dark:text-gray-400">Last sync:</span>
+          <span class="text-gray-800 dark:text-gray-200">{{ syncStatus.lastSyncAt ? new Date(syncStatus.lastSyncAt).toLocaleString() : 'Never' }}</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-gray-500">Status:</span>
+          <span class="text-gray-500 dark:text-gray-400">Status:</span>
           <span
             :class="{
-              'text-green-600': syncStatus.status === 'success',
-              'text-red-600': syncStatus.status === 'error',
-              'text-gray-500': syncStatus.status === 'never'
+              'text-green-600 dark:text-green-400': syncStatus.status === 'success',
+              'text-red-600 dark:text-red-400': syncStatus.status === 'error',
+              'text-gray-500 dark:text-gray-400': syncStatus.status === 'never'
             }"
           >
             {{ syncStatus.status }}
           </span>
         </div>
         <div v-if="syncStatus.teamCount" class="flex justify-between">
-          <span class="text-gray-500">Teams:</span>
-          <span class="text-gray-800">{{ syncStatus.teamCount }}</span>
+          <span class="text-gray-500 dark:text-gray-400">Teams:</span>
+          <span class="text-gray-800 dark:text-gray-200">{{ syncStatus.teamCount }}</span>
         </div>
         <div v-if="syncStatus.peopleCount" class="flex justify-between">
-          <span class="text-gray-500">People:</span>
-          <span class="text-gray-800">{{ syncStatus.peopleCount }}</span>
+          <span class="text-gray-500 dark:text-gray-400">People:</span>
+          <span class="text-gray-800 dark:text-gray-200">{{ syncStatus.peopleCount }}</span>
         </div>
-        <div v-if="syncStatus.error" class="mt-2 text-red-600 text-xs bg-red-50 p-2 rounded">
+        <div v-if="syncStatus.error" class="mt-2 text-red-600 dark:text-red-400 text-xs bg-red-50 dark:bg-red-900/20 p-2 rounded">
           {{ syncStatus.error }}
         </div>
       </div>
-      <div v-else class="text-sm text-gray-500">Loading...</div>
+      <div v-else class="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
     </div>
 
     <!-- Manual Sync -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <h4 class="text-sm font-medium text-gray-700 mb-3">Manual Sync</h4>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Manual Sync</h4>
       <div class="flex gap-2">
         <select
           v-model="syncType"
           :disabled="syncing"
-          class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white disabled:opacity-50"
+          class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 dark:text-gray-100 disabled:opacity-50"
         >
           <option value="full">Full Sync (Sheets + RFE)</option>
           <option value="sheets">Sheets Only</option>
@@ -58,58 +58,58 @@
           {{ syncing ? 'Syncing...' : 'Run Sync' }}
         </button>
       </div>
-      <p v-if="syncMessage" class="mt-2 text-sm" :class="syncError ? 'text-red-600' : 'text-green-600'">
+      <p v-if="syncMessage" class="mt-2 text-sm" :class="syncError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
         {{ syncMessage }}
       </p>
     </div>
 
     <!-- Configuration -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <h4 class="text-sm font-medium text-gray-700 mb-3">Configuration</h4>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Configuration</h4>
       <div class="space-y-3">
         <div>
-          <label class="block text-xs text-gray-500 mb-1">Team Boards Tab Name</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Team Boards Tab Name</label>
           <input
             v-model="config.teamBoardsTab"
             type="text"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
-          <label class="block text-xs text-gray-500 mb-1">Components Tab Name</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Components Tab Name</label>
           <input
             v-model="config.componentsTab"
             type="text"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
-          <label class="block text-xs text-gray-500 mb-1">Jira Project (for RFE queries)</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Jira Project (for RFE queries)</label>
           <input
             v-model="config.jiraProject"
             type="text"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
         <div>
-          <label class="block text-xs text-gray-500 mb-1">RFE Issue Type</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">RFE Issue Type</label>
           <input
             v-model="config.rfeIssueType"
             type="text"
-            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </div>
     </div>
 
     <!-- Org Name Mapping -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
       <div class="flex items-center justify-between mb-1">
-        <h4 class="text-sm font-medium text-gray-700">Org Name Mapping</h4>
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Org Name Mapping</h4>
         <button
           @click="handleDetectOrgs"
           :disabled="detectingOrgs"
-          class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+          class="text-xs text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 disabled:opacity-50"
         >
           {{ detectingOrgs ? 'Detecting...' : 'Detect from Sheet' }}
         </button>
@@ -121,12 +121,12 @@
         <div
           v-for="row in autoMatchedOrgs"
           :key="'matched-' + row.sheetOrg"
-          class="flex gap-2 items-center px-3 py-2 bg-green-50 border border-green-200 rounded-lg"
+          class="flex gap-2 items-center px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg"
         >
-          <span class="flex-1 text-sm text-green-800">{{ row.sheetOrg }}</span>
+          <span class="flex-1 text-sm text-green-800 dark:text-green-300">{{ row.sheetOrg }}</span>
           <span class="text-green-400 text-sm">→</span>
-          <span class="flex-1 text-sm text-green-800">{{ row.sheetOrg }}</span>
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">matched</span>
+          <span class="flex-1 text-sm text-green-800 dark:text-green-300">{{ row.sheetOrg }}</span>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">matched</span>
         </div>
 
         <!-- Suggested / unmatched orgs -->
@@ -134,15 +134,15 @@
           v-for="row in unmatchedOrgs"
           :key="'unmatched-' + row.sheetOrg"
           class="rounded-lg"
-          :class="row.isSuggestion && row.selectedOrg ? 'bg-amber-50 border border-amber-200 p-3' : ''"
+          :class="row.isSuggestion && row.selectedOrg ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-3' : ''"
         >
           <div class="flex gap-2 items-center">
-            <span class="flex-1 px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700">{{ row.sheetOrg }}</span>
+            <span class="flex-1 px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300">{{ row.sheetOrg }}</span>
             <span class="text-gray-400 text-sm">→</span>
             <select
               v-model="row.selectedOrg"
-              class="flex-1 px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              :class="row.isSuggestion && row.selectedOrg ? 'border-amber-300 bg-white' : 'border-gray-300'"
+              class="flex-1 px-3 py-1.5 text-sm border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              :class="row.isSuggestion && row.selectedOrg ? 'border-amber-300 dark:border-amber-600' : 'border-gray-300 dark:border-gray-600'"
               @change="row.isSuggestion && (row.isSuggestion = false)"
             >
               <option value="">— skip (don't sync) —</option>
@@ -150,7 +150,7 @@
             </select>
           </div>
           <div v-if="row.isSuggestion && row.selectedOrg" class="flex items-center justify-between mt-2">
-            <span class="text-xs text-amber-700">Suggested match — does this look right?</span>
+            <span class="text-xs text-amber-700 dark:text-amber-300">Suggested match — does this look right?</span>
             <div class="flex gap-2">
               <button
                 @click="row.isSuggestion = false"
@@ -160,7 +160,7 @@
               </button>
               <button
                 @click="row.selectedOrg = ''; row.isSuggestion = false"
-                class="px-2.5 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                class="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 Dismiss
               </button>
@@ -173,17 +173,17 @@
         Click "Detect from Sheet" to discover org names from the spreadsheet.
       </div>
 
-      <p v-if="detectError" class="mt-2 text-xs text-red-600">{{ detectError }}</p>
+      <p v-if="detectError" class="mt-2 text-xs text-red-600 dark:text-red-400">{{ detectError }}</p>
     </div>
 
     <!-- Component Name Mapping -->
-    <div class="bg-white border border-gray-200 rounded-lg p-4">
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
       <div class="flex items-center justify-between mb-1">
-        <h4 class="text-sm font-medium text-gray-700">Component Name Mapping</h4>
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Component Name Mapping</h4>
         <button
           @click="handleDetectComponents"
           :disabled="detectingComponents"
-          class="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+          class="text-xs text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 disabled:opacity-50"
         >
           {{ detectingComponents ? 'Detecting...' : 'Detect & Match' }}
         </button>
@@ -195,12 +195,12 @@
         <div
           v-for="row in autoMatchedComponents"
           :key="'comp-matched-' + row.sheetComponent"
-          class="flex gap-2 items-center px-3 py-2 bg-green-50 border border-green-200 rounded-lg"
+          class="flex gap-2 items-center px-3 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg"
         >
-          <span class="flex-1 text-sm text-green-800 truncate">{{ row.sheetComponent }}</span>
+          <span class="flex-1 text-sm text-green-800 dark:text-green-300 truncate">{{ row.sheetComponent }}</span>
           <span class="text-green-400 text-sm">→</span>
-          <span class="flex-1 text-sm text-green-800 truncate">{{ row.selectedComponent }}</span>
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">matched</span>
+          <span class="flex-1 text-sm text-green-800 dark:text-green-300 truncate">{{ row.selectedComponent }}</span>
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">matched</span>
         </div>
 
         <!-- Suggested / unmatched components -->
@@ -208,15 +208,15 @@
           v-for="row in unmatchedComponents"
           :key="'comp-unmatched-' + row.sheetComponent"
           class="rounded-lg"
-          :class="row.isSuggestion && row.selectedComponent ? 'bg-amber-50 border border-amber-200 p-3' : ''"
+          :class="row.isSuggestion && row.selectedComponent ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-3' : ''"
         >
           <div class="flex gap-2 items-center">
-            <span class="flex-1 px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 truncate">{{ row.sheetComponent }}</span>
+            <span class="flex-1 px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 truncate">{{ row.sheetComponent }}</span>
             <span class="text-gray-400 text-sm">→</span>
             <select
               v-model="row.selectedComponent"
-              class="flex-1 px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              :class="row.isSuggestion && row.selectedComponent ? 'border-amber-300 bg-white' : 'border-gray-300'"
+              class="flex-1 px-3 py-1.5 text-sm border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              :class="row.isSuggestion && row.selectedComponent ? 'border-amber-300 dark:border-amber-600' : 'border-gray-300 dark:border-gray-600'"
               @change="row.isSuggestion && (row.isSuggestion = false)"
             >
               <option value="">— no mapping (use as-is) —</option>
@@ -224,7 +224,7 @@
             </select>
           </div>
           <div v-if="row.isSuggestion && row.selectedComponent" class="flex items-center justify-between mt-2">
-            <span class="text-xs text-amber-700">Suggested match — does this look right?</span>
+            <span class="text-xs text-amber-700 dark:text-amber-300">Suggested match — does this look right?</span>
             <div class="flex gap-2">
               <button
                 @click="row.isSuggestion = false"
@@ -234,7 +234,7 @@
               </button>
               <button
                 @click="row.selectedComponent = ''; row.isSuggestion = false"
-                class="px-2.5 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                class="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 Dismiss
               </button>

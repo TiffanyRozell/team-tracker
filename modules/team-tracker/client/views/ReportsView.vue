@@ -4,38 +4,38 @@
     <div class="flex items-center gap-3 mb-6">
       <button
         @click="$emit('back')"
-        class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+        class="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         title="Back to Dashboard"
       >
         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
       </button>
-      <h2 class="text-xl font-bold text-gray-900">Reports</h2>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Reports</h2>
     </div>
 
     <div class="flex gap-6">
       <!-- Sidebar -->
       <aside class="w-72 shrink-0 space-y-6">
-        <div v-if="orgs.length > 1" class="bg-white rounded-lg shadow p-4">
-          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">Organization</h3>
+        <div v-if="orgs.length > 1" class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2">Organization</h3>
           <select
             :value="selectedOrgKey"
             @change="handleOrgChange($event.target.value)"
-            class="w-full text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-md focus:ring-primary-500 focus:border-primary-500"
           >
             <option v-for="org in orgs" :key="org.key" :value="org.key">
               {{ org.displayName }}
             </option>
           </select>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <ReportsTeamSelector :teams="teams" v-model="selectedTeamKeys" />
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <ReportsMetricSelector v-model="selectedMetrics" />
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
           <ReportsChartTypeSelector v-model="chartType" />
         </div>
         <button
@@ -52,13 +52,13 @@
 
       <!-- Main content -->
       <div class="flex-1 space-y-6">
-        <div v-if="charts.length === 0" class="bg-white rounded-lg shadow p-12 text-center text-gray-400">
+        <div v-if="charts.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center text-gray-400 dark:text-gray-500">
           <p class="text-lg">Select teams and metrics, then click Generate</p>
         </div>
         <div
           v-for="(chart, idx) in charts"
           :key="chart.metricKey + '-' + idx"
-          class="bg-white rounded-lg shadow p-4"
+          class="bg-white dark:bg-gray-800 rounded-lg shadow p-4"
         >
           <ReportChart
             :type="chartType"

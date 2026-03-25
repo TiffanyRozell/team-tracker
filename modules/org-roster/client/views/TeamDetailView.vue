@@ -3,7 +3,7 @@
     <!-- Back button -->
     <button
       @click="nav.goBack()"
-      class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 mb-4"
+      class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-4"
     >
       <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -17,8 +17,8 @@
     </div>
 
     <!-- Error -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <p class="text-red-700 text-sm">{{ error }}</p>
+    <div v-else-if="error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+      <p class="text-red-700 dark:text-red-400 text-sm">{{ error }}</p>
     </div>
 
     <template v-else-if="team">
@@ -26,8 +26,8 @@
       <div class="mb-8">
         <div class="flex items-start justify-between">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">{{ team.name }}</h2>
-            <p class="text-sm text-gray-500 mt-1">{{ team.org }}</p>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ team.name }}</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ team.org }}</p>
           </div>
           <RfeBacklogBadge :count="team.rfeCount || 0" :url="teamRfeUrl" />
         </div>
@@ -35,17 +35,17 @@
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <!-- PMs -->
           <div v-if="team.productManagers && team.productManagers.length > 0">
-            <p class="text-xs text-gray-500 uppercase font-medium mb-1">Product Manager</p>
-            <p class="text-sm text-gray-800">{{ team.productManagers.join(', ') }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium mb-1">Product Manager</p>
+            <p class="text-sm text-gray-800 dark:text-gray-200">{{ team.productManagers.join(', ') }}</p>
           </div>
           <!-- Eng Leads -->
           <div v-if="team.engLeads && team.engLeads.length > 0">
-            <p class="text-xs text-gray-500 uppercase font-medium mb-1">Engineering Lead</p>
-            <p class="text-sm text-gray-800">{{ team.engLeads.join(', ') }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium mb-1">Engineering Lead</p>
+            <p class="text-sm text-gray-800 dark:text-gray-200">{{ team.engLeads.join(', ') }}</p>
           </div>
           <!-- Board Links -->
           <div v-if="boardLinks.length > 0">
-            <p class="text-xs text-gray-500 uppercase font-medium mb-1">Jira Board{{ boardLinks.length > 1 ? 's' : '' }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium mb-1">Jira Board{{ boardLinks.length > 1 ? 's' : '' }}</p>
             <div class="flex flex-col gap-1">
               <a
                 v-for="(board, i) in boardLinks"
@@ -63,31 +63,31 @@
       </div>
 
       <!-- Headcount by Role -->
-      <div v-if="team.headcount" class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Headcount by Role</h3>
+      <div v-if="team.headcount" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Headcount by Role</h3>
         <HeadcountChart :headcount="team.headcount" />
       </div>
 
       <!-- Components -->
-      <div v-if="team.components && team.components.length > 0" class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Components</h3>
+      <div v-if="team.components && team.components.length > 0" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Components</h3>
         <ComponentList :components="team.components" :rfeCounts="rfeCounts" :rfeConfig="rfeConfig" />
       </div>
 
       <!-- Open RFEs -->
-      <div v-if="rfeIssues.length > 0" class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div v-if="rfeIssues.length > 0" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
           <button class="flex items-center gap-2 group" @click="sections.rfes = !sections.rfes">
             <svg
-              class="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform"
+              class="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform"
               :class="{ '-rotate-90': !sections.rfes }"
               xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
-            <h3 class="text-lg font-semibold text-gray-900">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Open RFEs
-              <span class="text-sm font-normal text-gray-500 ml-2">{{ sortedRfeIssues.length }} of {{ rfeIssues.length }} issue{{ rfeIssues.length !== 1 ? 's' : '' }}</span>
+              <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">{{ sortedRfeIssues.length }} of {{ rfeIssues.length }} issue{{ rfeIssues.length !== 1 ? 's' : '' }}</span>
             </h3>
           </button>
           <a
@@ -95,7 +95,7 @@
             :href="teamRfeUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-xs text-primary-600 hover:text-primary-700"
+            class="text-xs text-primary-600 hover:text-primary-700 dark:hover:text-primary-400"
           >
             View in Jira
           </a>
@@ -109,52 +109,52 @@
               v-model="rfeSearch"
               type="text"
               placeholder="Search RFEs by key, summary, component, status..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
-              <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+              <thead class="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('key')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('key')">
                     Key <span v-if="rfeSort === 'key'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('summary')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('summary')">
                     Summary <span v-if="rfeSort === 'summary'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('components')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('components')">
                     Components <span v-if="rfeSort === 'components'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('status')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('status')">
                     Status <span v-if="rfeSort === 'status'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('priority')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('priority')">
                     Priority <span v-if="rfeSort === 'priority'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 select-none" @click="toggleRfeSort('created')">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" @click="toggleRfeSort('created')">
                     Created <span v-if="rfeSort === 'created'">{{ rfeSortDir === 'asc' ? '▲' : '▼' }}</span>
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200">
-                <tr v-for="issue in sortedRfeIssues" :key="issue.key" class="hover:bg-gray-50">
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr v-for="issue in sortedRfeIssues" :key="issue.key" class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td class="px-4 py-3 whitespace-nowrap">
                     <a
                       :href="jiraIssueUrl(issue.key)"
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="text-primary-600 hover:text-primary-800 hover:underline font-medium"
+                      class="text-primary-600 hover:text-primary-800 dark:hover:text-primary-400 hover:underline font-medium"
                     >
                       {{ issue.key }}
                     </a>
                   </td>
-                  <td class="px-4 py-3 text-gray-800">{{ issue.summary }}</td>
+                  <td class="px-4 py-3 text-gray-800 dark:text-gray-200">{{ issue.summary }}</td>
                   <td class="px-4 py-3">
                     <div class="flex flex-wrap gap-1">
                       <span
                         v-for="comp in issue.components"
                         :key="comp"
-                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-50 text-blue-700"
+                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                       >
                         {{ comp }}
                       </span>
@@ -168,8 +168,8 @@
                       {{ issue.status }}
                     </span>
                   </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-gray-600">{{ issue.priority }}</td>
-                  <td class="px-4 py-3 whitespace-nowrap text-gray-500">{{ formatDate(issue.created) }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap text-gray-600 dark:text-gray-400">{{ issue.priority }}</td>
+                  <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{{ formatDate(issue.created) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -178,18 +178,18 @@
       </div>
 
       <!-- Team Members -->
-      <div class="bg-white border border-gray-200 rounded-lg p-6">
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
         <button class="flex items-center gap-2 group mb-4" @click="sections.members = !sections.members">
           <svg
-            class="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-transform"
+            class="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform"
             :class="{ '-rotate-90': !sections.members }"
             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           >
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Team Members
-            <span class="text-sm font-normal text-gray-500 ml-2">{{ members.length }} member{{ members.length !== 1 ? 's' : '' }}</span>
+            <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">{{ members.length }} member{{ members.length !== 1 ? 's' : '' }}</span>
           </h3>
         </button>
         <TeamMembersTable v-if="sections.members" :members="members" />

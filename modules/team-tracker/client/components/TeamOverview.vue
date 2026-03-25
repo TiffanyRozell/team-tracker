@@ -27,8 +27,8 @@
 
     <!-- Trend charts (2-up) -->
     <div v-if="trendData && trendData.length > 1" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-lg border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">Velocity Trend</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Velocity Trend</h3>
         <TrendChart
           :labels="trendLabels"
           :datasets="[{
@@ -39,8 +39,8 @@
           }]"
         />
       </div>
-      <div class="bg-white rounded-lg border border-gray-200 p-5">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">Commitment Reliability Trend</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Commitment Reliability Trend</h3>
         <TrendChart
           :labels="trendLabels"
           :datasets="[{
@@ -56,9 +56,9 @@
     </div>
 
     <!-- Contribution donut chart -->
-    <div class="bg-white rounded-lg border border-gray-200 p-5">
-      <h3 class="text-sm font-semibold text-gray-700 mb-1">Contribution Breakdown</h3>
-      <p class="text-xs text-gray-400 mb-4">Share of completed story points over last {{ rollingSprintCount }} sprints. Click a slice to see details.</p>
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+      <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Contribution Breakdown</h3>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Share of completed story points over last {{ rollingSprintCount }} sprints. Click a slice to see details.</p>
       <div v-if="contributionLabels.length > 0">
         <DoughnutChart
           :labels="contributionLabels"
@@ -66,16 +66,16 @@
           @slice-click="handleSliceClick"
         />
       </div>
-      <p v-else class="text-sm text-gray-400 italic text-center py-8">
+      <p v-else class="text-sm text-gray-400 dark:text-gray-500 italic text-center py-8">
         No assignee data available in recent sprints
       </p>
     </div>
 
     <!-- Expanded sprint breakdown for selected associate -->
-    <div v-if="selectedAssignee" class="bg-white rounded-lg border border-gray-200 p-5">
+    <div v-if="selectedAssignee" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold text-gray-700">{{ selectedAssignee }} - Sprint Breakdown</h3>
-        <button @click="selectedAssignee = null" class="text-gray-400 hover:text-gray-600">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">{{ selectedAssignee }} - Sprint Breakdown</h3>
+        <button @click="selectedAssignee = null" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400">
           <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -85,39 +85,39 @@
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-200">
-              <th class="text-left py-2 px-2 text-gray-500 font-medium">Sprint</th>
-              <th class="text-right py-2 px-2 text-gray-500 font-medium">Pts Done</th>
-              <th class="text-right py-2 px-2 text-gray-500 font-medium">Issues Done</th>
-              <th class="text-right py-2 px-2 text-gray-500 font-medium">Pts Assigned</th>
-              <th class="text-right py-2 px-2 text-gray-500 font-medium">Completion</th>
-              <th class="text-center py-2 px-2 text-gray-500 font-medium">Notes</th>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Sprint</th>
+              <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Pts Done</th>
+              <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Issues Done</th>
+              <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Pts Assigned</th>
+              <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Completion</th>
+              <th class="text-center py-2 px-2 text-gray-500 dark:text-gray-400 font-medium">Notes</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="row in assigneeSprintRows"
               :key="row.sprintId"
-              class="border-b border-gray-100 hover:bg-gray-50"
+              class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
             >
-              <td class="py-2 px-2 text-gray-900">
+              <td class="py-2 px-2 text-gray-900 dark:text-gray-100">
                 <button
-                  class="text-primary-600 hover:text-primary-800 text-left"
+                  class="text-primary-600 hover:text-primary-800 dark:hover:text-primary-400 text-left"
                   @click="$emit('select-sprint', row.sprintId)"
                 >
                   {{ row.sprintName }}
                 </button>
               </td>
-              <td class="py-2 px-2 text-right text-gray-700">{{ row.pointsCompleted }}</td>
-              <td class="py-2 px-2 text-right text-gray-700">{{ row.issuesCompleted }}</td>
-              <td class="py-2 px-2 text-right text-gray-500">{{ row.pointsAssigned }}</td>
+              <td class="py-2 px-2 text-right text-gray-700 dark:text-gray-300">{{ row.pointsCompleted }}</td>
+              <td class="py-2 px-2 text-right text-gray-700 dark:text-gray-300">{{ row.issuesCompleted }}</td>
+              <td class="py-2 px-2 text-right text-gray-500 dark:text-gray-400">{{ row.pointsAssigned }}</td>
               <td class="py-2 px-2 text-right">
                 <span :class="completionColor(row.completionRate)">{{ row.completionRate }}%</span>
               </td>
               <td class="py-2 px-2 text-center">
                 <button
                   @click="openAnnotation(row)"
-                  class="inline-flex items-center gap-1 text-gray-400 hover:text-primary-600"
+                  class="inline-flex items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
                   :class="{ 'text-primary-600': row.annotationCount > 0 }"
                 >
                   <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

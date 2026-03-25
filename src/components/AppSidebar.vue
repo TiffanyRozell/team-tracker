@@ -3,17 +3,17 @@
     class="fixed top-0 left-0 h-screen z-30 flex flex-col transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
     :class="collapsed ? 'w-[72px]' : 'w-[260px]'"
   >
-    <div class="flex flex-col h-full m-2.5 bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.03)] overflow-hidden">
+    <div class="flex flex-col h-full m-2.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/60 dark:border-gray-700/60 rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.03)] overflow-hidden">
       <!-- Header -->
       <div
-        class="flex items-center py-5 border-b border-gray-100 transition-all duration-300"
+        class="flex items-center py-5 border-b border-gray-100 dark:border-gray-700 transition-all duration-300"
         :class="collapsed ? 'justify-center px-0' : 'gap-3 px-4'"
       >
         <img src="/redhat-logo.svg" alt="Red Hat" class="h-8 w-8 flex-shrink-0" />
         <transition name="fade">
           <div v-if="!collapsed" class="overflow-hidden whitespace-nowrap">
-            <h1 class="text-sm font-bold text-gray-900 leading-tight">Org Pulse</h1>
-            <p class="text-xs text-gray-400">AI Engineering</p>
+            <h1 class="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">Org Pulse</h1>
+            <p class="text-xs text-gray-400 dark:text-gray-500">AI Engineering</p>
           </div>
         </transition>
       </div>
@@ -24,7 +24,7 @@
           <!-- Section label -->
           <p
             v-if="!collapsed && section.label"
-            class="px-3 mb-2 mt-4 first:mt-0 text-[10px] font-semibold uppercase tracking-widest text-gray-400"
+            class="px-3 mb-2 mt-4 first:mt-0 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500"
           >{{ section.label }}</p>
 
           <!-- Collapsible section header (built-in modules) -->
@@ -33,8 +33,8 @@
               @click="toggleSection(section.id)"
               class="group relative w-full flex items-center py-2.5 rounded-xl text-sm font-medium transition-all duration-200 gap-3 px-3"
               :class="activeModule === section.id
-                ? 'bg-gray-900 text-white shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+                ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'"
               :aria-expanded="section.expanded"
               :aria-label="section.headerLabel"
             >
@@ -61,8 +61,8 @@
                 :aria-label="item.label"
                 class="group relative w-full flex items-center py-2 rounded-lg text-sm font-medium transition-all duration-200 gap-3 px-3"
                 :class="isNavItemActive(item, section)
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'"
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-700 dark:hover:text-gray-200'"
               >
                 <component
                   :is="item.icon"
@@ -86,8 +86,8 @@
                 class="group relative w-full flex items-center py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
                 :class="[
                   isNavItemActive(item, section)
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+                    ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100',
                   collapsed ? 'justify-center px-0' : 'gap-3 px-3'
                 ]"
               >
@@ -103,7 +103,7 @@
                 <!-- Collapsed tooltip -->
                 <span
                   v-if="collapsed"
-                  class="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                  class="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
                 >
                   {{ item.label }}
                 </span>
@@ -114,7 +114,7 @@
       </nav>
 
       <!-- Footer -->
-      <div class="px-3 py-3 border-t border-gray-100 space-y-1">
+      <div class="px-3 py-3 border-t border-gray-100 dark:border-gray-700 space-y-1">
         <!-- User -->
         <div
           v-if="user"
@@ -126,8 +126,8 @@
           </div>
           <transition name="fade">
             <div v-if="!collapsed" class="overflow-hidden min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">{{ user.displayName || user.email }}</p>
-              <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.displayName || user.email }}</p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 truncate">{{ user.email }}</p>
             </div>
           </transition>
         </div>
@@ -135,7 +135,7 @@
         <!-- Collapse toggle -->
         <button
           @click="$emit('toggle-collapse')"
-          class="w-full flex items-center py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+          class="w-full flex items-center py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
           :class="collapsed ? 'justify-center px-0' : 'gap-3 px-3'"
         >
           <component
@@ -156,7 +156,7 @@
   <transition name="fade">
     <div
       v-if="mobileOpen"
-      class="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 lg:hidden"
+      class="fixed inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm z-20 lg:hidden"
       @click="$emit('close-mobile')"
     />
   </transition>

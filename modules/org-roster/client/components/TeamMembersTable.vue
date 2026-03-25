@@ -9,7 +9,7 @@
         v-model="searchQuery"
         type="text"
         placeholder="Search by name, manager, role, component, location..."
-        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+        class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
       />
     </div>
 
@@ -20,7 +20,7 @@
         class="px-3 py-1 rounded text-xs font-medium transition-colors border"
         :class="!roleFilter
           ? 'bg-primary-600 text-white border-primary-600'
-          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+          : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'"
       >
         All roles
       </button>
@@ -31,19 +31,19 @@
         class="px-3 py-1 rounded text-xs font-medium transition-colors border"
         :class="roleFilter === role
           ? 'bg-primary-600 text-white border-primary-600'
-          : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'"
+          : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'"
       >
         {{ role }}
       </button>
     </div>
 
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-800">
         <tr>
           <th
             v-for="col in columns"
             :key="col.key"
-            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+            class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-300"
             @click="toggleSort(col.key)"
           >
             {{ col.label }}
@@ -51,11 +51,11 @@
           </th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
         <tr
           v-for="member in sortedMembers"
           :key="member.name"
-          class="hover:bg-gray-50"
+          class="hover:bg-gray-50 dark:hover:bg-gray-700/50"
           :class="{ 'opacity-50': getStatus(member) === 'Not Confirmed' }"
         >
           <td class="px-4 py-3 text-sm whitespace-nowrap">
@@ -68,20 +68,20 @@
             </a>
             <span
               v-if="getStatus(member) === 'Not Confirmed'"
-              class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-800"
+              class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400"
             >
               Unconfirmed
             </span>
           </td>
-          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ member.managerUid || member.manager || '—' }}</td>
-          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ getSpecialty(member) }}</td>
-          <td class="px-4 py-3 text-sm text-gray-600">{{ getComponent(member) }}</td>
-          <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ member.geo || member.region || '—' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ member.managerUid || member.manager || '—' }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ getSpecialty(member) }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ getComponent(member) }}</td>
+          <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ member.geo || member.region || '—' }}</td>
         </tr>
       </tbody>
     </table>
 
-    <div v-if="sortedMembers.length === 0" class="text-center py-8 text-gray-500 text-sm">
+    <div v-if="sortedMembers.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
       {{ searchQuery ? `No members match "${searchQuery}"` : 'No members found.' }}
     </div>
   </div>

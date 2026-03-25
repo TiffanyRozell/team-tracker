@@ -7,7 +7,7 @@
     >
       <div class="text-center">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4" />
-        <p class="text-sm text-gray-500">Loading module...</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Loading module...</p>
       </div>
     </div>
 
@@ -17,11 +17,11 @@
       class="flex items-center justify-center py-16"
     >
       <div class="text-center">
-        <div class="text-red-400 mb-4">
+        <div class="text-red-400 dark:text-red-500 mb-4">
           <AlertTriangle :size="48" class="mx-auto" />
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load module</h3>
-        <p class="text-sm text-gray-500 mb-4">The module content could not be loaded.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Failed to load module</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">The module content could not be loaded.</p>
         <button
           v-if="isAdmin"
           @click="$emit('retry-sync')"
@@ -38,11 +38,11 @@
       class="flex items-center justify-center py-16"
     >
       <div class="text-center">
-        <div class="text-gray-300 mb-4">
+        <div class="text-gray-300 dark:text-gray-600 mb-4">
           <Package :size="48" class="mx-auto" />
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">This module hasn't been synced yet</h3>
-        <p class="text-sm text-gray-500 mb-4">An admin needs to sync the module content.</p>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">This module hasn't been synced yet</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">An admin needs to sync the module content.</p>
         <button
           v-if="isAdmin"
           @click="$emit('trigger-sync')"

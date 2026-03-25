@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-xl font-bold text-gray-900">Org Pulse</h1>
-      <p class="text-sm text-gray-500">Select a module to get started</p>
+      <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Org Pulse</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Select a module to get started</p>
     </div>
 
     <!-- Empty state -->
@@ -10,16 +10,16 @@
       v-if="builtInManifests.length === 0 && modules.length === 0"
       class="flex flex-col items-center justify-center py-16 text-center"
     >
-      <Package :size="48" class="text-gray-300 mb-4" />
-      <h3 class="text-lg font-medium text-gray-600 mb-2">No modules configured yet</h3>
-      <p v-if="isAdmin" class="text-sm text-gray-400">
+      <Package :size="48" class="text-gray-300 dark:text-gray-600 mb-4" />
+      <h3 class="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">No modules configured yet</h3>
+      <p v-if="isAdmin" class="text-sm text-gray-400 dark:text-gray-500">
         Go to <button class="text-primary-600 hover:underline" @click="$emit('navigate', 'settings')">Settings</button> to add modules.
       </p>
     </div>
 
     <!-- Built-in Modules (from manifests) -->
     <div v-if="builtInManifests.length > 0" class="mb-8">
-      <p class="px-1 mb-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+      <p class="px-1 mb-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
         Built-in Modules
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -27,15 +27,15 @@
           v-for="mod in builtInManifests"
           :key="mod.slug"
           @click="$emit('navigate', mod.slug)"
-          class="bg-white rounded-lg border border-gray-200 p-5 cursor-pointer hover:border-primary-300 hover:shadow-md transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           <div class="flex items-start gap-3">
-            <div class="p-2 bg-primary-50 rounded-lg text-primary-600">
+            <div class="p-2 bg-primary-50 dark:bg-primary-900/30 rounded-lg text-primary-600 dark:text-primary-400">
               <component :is="getIcon(mod.icon)" :size="20" />
             </div>
             <div class="min-w-0 flex-1">
-              <h3 class="text-base font-semibold text-gray-900">{{ mod.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ mod.description }}</p>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ mod.name }}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ mod.description }}</p>
             </div>
           </div>
         </button>
@@ -44,7 +44,7 @@
 
     <!-- External Modules (git-static) -->
     <div v-if="externalModules.length > 0">
-      <p class="px-1 mb-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+      <p class="px-1 mb-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
         External Modules
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -52,16 +52,16 @@
           v-for="mod in externalModules"
           :key="mod.slug"
           @click="$emit('navigate', `modules/${mod.slug}`)"
-          class="bg-white rounded-lg border border-gray-200 p-5 cursor-pointer hover:border-primary-300 hover:shadow-md transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
         >
           <div class="flex items-start gap-3">
-            <div class="p-2 bg-gray-50 rounded-lg text-gray-600">
+            <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300">
               <component :is="getIcon(mod.icon)" :size="20" />
             </div>
             <div class="min-w-0 flex-1">
-              <h3 class="text-base font-semibold text-gray-900">{{ mod.name }}</h3>
-              <p class="text-sm text-gray-500 mt-1">{{ mod.description }}</p>
-              <span class="inline-block mt-2 px-2 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100 rounded-full">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ mod.name }}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ mod.description }}</p>
+              <span class="inline-block mt-2 px-2 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 rounded-full">
                 External
               </span>
             </div>

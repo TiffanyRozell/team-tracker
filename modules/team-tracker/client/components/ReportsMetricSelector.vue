@@ -1,20 +1,20 @@
 <template>
   <div>
-    <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">Metrics</h3>
+    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2">Metrics</h3>
     <div class="space-y-1">
       <label
         v-for="metric in metrics"
         :key="metric.key"
-        class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"
+        class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
       >
         <input
           type="checkbox"
           :value="metric.key"
           :checked="modelValue.includes(metric.key)"
           @change="toggle(metric.key)"
-          class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
         />
-        <span class="text-sm text-gray-700">{{ metric.label }}</span>
+        <span class="text-sm text-gray-700 dark:text-gray-300">{{ metric.label }}</span>
       </label>
     </div>
   </div>

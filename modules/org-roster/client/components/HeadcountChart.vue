@@ -6,22 +6,22 @@
     <div class="flex-1">
       <table class="min-w-full text-sm">
         <thead>
-          <tr class="text-left text-xs text-gray-500 uppercase">
+          <tr class="text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
             <th class="py-1">Role</th>
             <th class="py-1 text-right">Headcount</th>
             <th class="py-1 text-right">FTE</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
           <tr v-for="(row, i) in tableRows" :key="row.role">
             <td class="py-1.5 flex items-center gap-2">
               <span class="inline-block w-3 h-3 rounded-full" :style="{ backgroundColor: colors[i % colors.length] }"></span>
               {{ row.role }}
             </td>
-            <td class="py-1.5 text-right text-gray-700">{{ row.headcount }}</td>
-            <td class="py-1.5 text-right text-gray-700">{{ row.fte }}</td>
+            <td class="py-1.5 text-right text-gray-700 dark:text-gray-300">{{ row.headcount }}</td>
+            <td class="py-1.5 text-right text-gray-700 dark:text-gray-300">{{ row.fte }}</td>
           </tr>
-          <tr class="font-semibold border-t border-gray-300">
+          <tr class="font-semibold border-t border-gray-300 dark:border-gray-600">
             <td class="py-1.5">Total</td>
             <td class="py-1.5 text-right">{{ totalHeadcount }}</td>
             <td class="py-1.5 text-right">{{ totalFte }}</td>

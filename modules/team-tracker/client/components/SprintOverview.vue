@@ -31,30 +31,30 @@
     <!-- Committed vs Delivered bars -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Points bar -->
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700">Points</span>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Points</span>
           <MethodologyInfo text="Committed = issues present when sprint was activated. Delivered = issues completed by sprint end. Unestimated issues default to 1 point." />
         </div>
         <div class="space-y-2">
           <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span class="cursor-pointer hover:text-primary-600" @click="$emit('drill-down', 'committed')">
                 Committed: {{ sprintData.committed.totalPoints }} pts ({{ sprintData.committed.issues.length }} issues)
               </span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
               <div class="bg-primary-400 h-3 rounded-full" :style="{ width: '100%' }"></div>
             </div>
           </div>
           <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span class="cursor-pointer hover:text-primary-600" @click="$emit('drill-down', 'delivered')">
                 Delivered: {{ sprintData.delivered.totalPoints }} pts ({{ sprintData.delivered.issues.length }} issues)
               </span>
               <span class="font-medium" :class="reliabilityColorClass">{{ sprintData.metrics.commitmentReliabilityPoints }}%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
               <div class="bg-green-500 h-3 rounded-full" :style="{ width: deliveredWidthPoints }"></div>
             </div>
           </div>
@@ -62,25 +62,25 @@
       </div>
 
       <!-- Count bar -->
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700">Issues</span>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Issues</span>
         </div>
         <div class="space-y-2">
           <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span>Committed: {{ sprintData.committed.issues.length }} issues</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
               <div class="bg-primary-400 h-3 rounded-full" :style="{ width: '100%' }"></div>
             </div>
           </div>
           <div>
-            <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
               <span>Delivered: {{ sprintData.delivered.issues.length }} issues</span>
               <span class="font-medium" :class="reliabilityCountColorClass">{{ sprintData.metrics.commitmentReliabilityCount }}%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
               <div class="bg-green-500 h-3 rounded-full" :style="{ width: deliveredWidthCount }"></div>
             </div>
           </div>
@@ -116,16 +116,16 @@
     <!-- Unestimated callout -->
     <div
       v-if="totalUnestimated > 0"
-      class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3"
+      class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 flex items-start gap-3"
     >
       <svg class="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
       </svg>
       <div>
-        <p class="text-sm font-medium text-amber-800">
+        <p class="text-sm font-medium text-amber-800 dark:text-amber-300">
           {{ totalUnestimated }} unestimated issue{{ totalUnestimated !== 1 ? 's' : '' }} ({{ totalDefaultedPoints }} defaulted pt{{ totalDefaultedPoints !== 1 ? 's' : ''}})
         </p>
-        <p class="text-xs text-amber-600 mt-1">
+        <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
           Unestimated issues are counted as 1 point each. This affects velocity and reliability calculations.
         </p>
       </div>

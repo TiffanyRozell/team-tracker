@@ -5,14 +5,14 @@
       <div class="flex items-center gap-3">
         <button
           @click="$emit('back')"
-          class="text-primary-600 hover:text-primary-800 font-medium flex items-center gap-1"
+          class="text-primary-600 hover:text-primary-800 dark:hover:text-primary-400 font-medium flex items-center gap-1"
         >
           <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
           Back
         </button>
-        <h2 class="text-xl font-bold text-gray-900">{{ board?.displayName || board?.name }}</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ board?.displayName || board?.name }}</h2>
       </div>
       <div v-if="viewMode === 'sprint-detail'" class="flex items-center gap-3">
         <SprintSelector
@@ -22,21 +22,21 @@
           @select-sprint="$emit('select-sprint', $event)"
         />
         <SprintStatusBadge v-if="selectedSprint" :state="selectedSprint.state" />
-        <span v-if="selectedSprint" class="text-sm text-gray-500">
+        <span v-if="selectedSprint" class="text-sm text-gray-500 dark:text-gray-400">
           {{ formatDateRange(selectedSprint.startDate, selectedSprint.endDate) }}
         </span>
       </div>
     </div>
 
     <!-- Tab bar -->
-    <div class="border-b border-gray-200 mb-6">
+    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
       <nav class="flex gap-6">
         <button
           @click="$emit('switch-mode', 'overview')"
           class="pb-3 text-sm font-medium border-b-2 transition-colors"
           :class="viewMode === 'overview'
             ? 'border-primary-600 text-primary-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
         >
           Team Overview
         </button>
@@ -45,7 +45,7 @@
           class="pb-3 text-sm font-medium border-b-2 transition-colors"
           :class="viewMode === 'sprint-detail'
             ? 'border-primary-600 text-primary-600'
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
         >
           Sprint Detail
         </button>

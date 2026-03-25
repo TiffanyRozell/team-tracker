@@ -2,7 +2,7 @@
   <transition name="toast">
     <div
       v-if="visible"
-      class="fixed top-4 right-4 z-50 max-w-md bg-white rounded-lg shadow-lg border-l-4 p-4"
+      class="fixed top-4 right-4 z-50 max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border-l-4 p-4"
       :class="borderColorClass"
       role="alert"
     >
@@ -40,11 +40,11 @@
           </svg>
         </div>
         <div class="flex-1">
-          <p class="text-sm font-medium text-gray-900">{{ message }}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ message }}</p>
         </div>
         <button
           @click="close"
-          class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          class="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

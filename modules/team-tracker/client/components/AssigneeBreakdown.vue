@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 p-5">
+  <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-sm font-semibold text-gray-700">Assignee Breakdown</h3>
+      <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Assignee Breakdown</h3>
       <MethodologyInfo text="Shows each person's contribution to the sprint. Points completed are based on delivered issues assigned to them. Completion rate = issues completed / issues assigned * 100." />
     </div>
 
@@ -12,20 +12,20 @@
     <div v-else class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-gray-200">
-            <th class="text-left py-2 px-2 text-gray-500 font-medium cursor-pointer hover:text-gray-700" @click="toggleSort('name')">
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="text-left py-2 px-2 text-gray-500 dark:text-gray-400 font-medium cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" @click="toggleSort('name')">
               Assignee {{ sortIcon('name') }}
             </th>
-            <th class="text-right py-2 px-2 text-gray-500 font-medium cursor-pointer hover:text-gray-700" @click="toggleSort('pointsCompleted')">
+            <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" @click="toggleSort('pointsCompleted')">
               Pts Done {{ sortIcon('pointsCompleted') }}
             </th>
-            <th class="text-right py-2 px-2 text-gray-500 font-medium cursor-pointer hover:text-gray-700" @click="toggleSort('issuesCompleted')">
+            <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" @click="toggleSort('issuesCompleted')">
               Issues Done {{ sortIcon('issuesCompleted') }}
             </th>
-            <th class="text-right py-2 px-2 text-gray-500 font-medium cursor-pointer hover:text-gray-700" @click="toggleSort('pointsAssigned')">
+            <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" @click="toggleSort('pointsAssigned')">
               Pts Assigned {{ sortIcon('pointsAssigned') }}
             </th>
-            <th class="text-right py-2 px-2 text-gray-500 font-medium cursor-pointer hover:text-gray-700" @click="toggleSort('completionRate')">
+            <th class="text-right py-2 px-2 text-gray-500 dark:text-gray-400 font-medium cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" @click="toggleSort('completionRate')">
               Completion {{ sortIcon('completionRate') }}
             </th>
           </tr>
@@ -34,13 +34,13 @@
           <tr
             v-for="assignee in sortedAssignees"
             :key="assignee.name"
-            class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+            class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
             @click="handleRowClick(assignee.name)"
           >
-            <td class="py-2 px-2 font-medium text-gray-900">{{ assignee.name }}</td>
-            <td class="py-2 px-2 text-right text-gray-700">{{ assignee.pointsCompleted }}</td>
-            <td class="py-2 px-2 text-right text-gray-700">{{ assignee.issuesCompleted }}</td>
-            <td class="py-2 px-2 text-right text-gray-500">{{ assignee.pointsAssigned }}</td>
+            <td class="py-2 px-2 font-medium text-gray-900 dark:text-gray-100">{{ assignee.name }}</td>
+            <td class="py-2 px-2 text-right text-gray-700 dark:text-gray-300">{{ assignee.pointsCompleted }}</td>
+            <td class="py-2 px-2 text-right text-gray-700 dark:text-gray-300">{{ assignee.issuesCompleted }}</td>
+            <td class="py-2 px-2 text-right text-gray-500 dark:text-gray-400">{{ assignee.pointsAssigned }}</td>
             <td class="py-2 px-2 text-right">
               <span :class="completionColor(assignee.completionRate)">{{ assignee.completionRate }}%</span>
             </td>

@@ -9,8 +9,8 @@
 
       <!-- Trend Charts (2-up) -->
       <div v-if="trendData && trendData.length > 1" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">Velocity Trend</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Velocity Trend</h3>
           <TrendChart
             :labels="trendLabels"
             :datasets="[{
@@ -21,8 +21,8 @@
             }]"
           />
         </div>
-        <div class="bg-white rounded-lg border border-gray-200 p-5">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3">Commitment Reliability Trend</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Commitment Reliability Trend</h3>
           <TrendChart
             :labels="trendLabels"
             :datasets="[{
@@ -47,7 +47,7 @@
       </div>
     </template>
 
-    <div v-else class="text-center py-12 text-gray-500">
+    <div v-else class="text-center py-12 text-gray-500 dark:text-gray-400">
       <p>No sprint data available. Try refreshing from Jira.</p>
     </div>
   </div>

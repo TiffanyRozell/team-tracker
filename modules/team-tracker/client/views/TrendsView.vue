@@ -2,28 +2,28 @@
   <div>
     <!-- Header -->
     <div class="mb-6">
-      <h2 class="text-xl font-bold text-gray-900">Trends</h2>
-      <p class="text-sm text-gray-500">Productivity over time</p>
+      <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Trends</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Productivity over time</p>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6 flex flex-wrap items-start gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6 flex flex-wrap items-start gap-6">
       <!-- Orgs -->
       <div>
-        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">Orgs</label>
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Orgs</label>
         <div class="space-y-1 max-h-48 overflow-y-auto">
           <label
             v-for="org in orgs"
             :key="org.key"
-            class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
+            class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
           >
             <input
               type="checkbox"
               :value="org.key"
               v-model="selectedOrgKeys"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
-            <span class="text-sm text-gray-700">{{ org.displayName }}</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ org.displayName }}</span>
           </label>
         </div>
       </div>
@@ -31,11 +31,11 @@
       <!-- Teams -->
       <div v-if="availableTeams.length > 0">
         <div class="flex items-center gap-2 mb-1">
-          <label class="block text-xs font-medium text-gray-500 uppercase">Teams</label>
+          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Teams</label>
           <button
             v-if="availableTeams.length > 1"
             @click="toggleAllTeams"
-            class="text-xs text-primary-600 hover:text-primary-800"
+            class="text-xs text-primary-600 hover:text-primary-800 dark:hover:text-primary-400"
           >
             {{ selectedTeamKeys.length === availableTeams.length ? 'Clear' : 'All' }}
           </button>
@@ -44,45 +44,45 @@
           <label
             v-for="team in availableTeams"
             :key="team.key"
-            class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
+            class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
           >
             <input
               type="checkbox"
               :value="team.key"
               v-model="selectedTeamKeys"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
             />
-            <span class="text-sm text-gray-700 whitespace-nowrap">{{ team.displayName }}</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{{ team.displayName }}</span>
           </label>
         </div>
       </div>
 
       <!-- Mode toggle -->
       <div v-if="showModeToggle" class="self-center">
-        <label class="block text-xs font-medium text-gray-500 uppercase mb-1">Mode</label>
-        <div class="flex rounded-md border border-gray-300 overflow-hidden">
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Mode</label>
+        <div class="flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
           <button
             @click="compareMode = 'aggregate'"
             class="px-3 py-1.5 text-xs font-medium transition-colors"
             :class="compareMode === 'aggregate'
               ? 'bg-primary-600 text-white'
-              : 'bg-white text-gray-600 hover:bg-gray-50'"
+              : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'"
           >
             Aggregate
           </button>
           <button
             @click="compareMode = 'compare'"
-            class="px-3 py-1.5 text-xs font-medium transition-colors border-l border-gray-300"
+            class="px-3 py-1.5 text-xs font-medium transition-colors border-l border-gray-300 dark:border-gray-600"
             :class="compareMode === 'compare'
               ? 'bg-primary-600 text-white'
-              : 'bg-white text-gray-600 hover:bg-gray-50'"
+              : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'"
           >
             Compare
           </button>
         </div>
       </div>
 
-      <div class="self-end text-xs text-gray-400 italic">
+      <div class="self-end text-xs text-gray-400 dark:text-gray-500 italic">
         No selection = overall total
       </div>
     </div>
@@ -93,14 +93,14 @@
     </div>
 
     <!-- No data -->
-    <div v-else-if="!trendsData" class="bg-white rounded-lg shadow p-12 text-center text-gray-400">
+    <div v-else-if="!trendsData" class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center text-gray-400 dark:text-gray-500">
       <p class="text-lg mb-2">No trend data available</p>
       <p class="text-sm">Click "Refresh Data (365d)" to fetch historical data from Jira and GitHub.</p>
     </div>
 
     <!-- Charts -->
     <div v-else class="space-y-6">
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <TrendChart
           :labels="displayLabels"
           :datasets="resolvedDatasets"
@@ -108,7 +108,7 @@
         />
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <TrendChart
           :labels="displayLabels"
           :datasets="githubDatasets"
@@ -116,7 +116,7 @@
         />
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <TrendChart
           :labels="displayLabels"
           :datasets="cycleTimeDatasets"

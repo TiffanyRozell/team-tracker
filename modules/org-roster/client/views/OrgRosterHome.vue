@@ -4,8 +4,8 @@
     <div class="mb-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-xl font-bold text-gray-900">Team Directory</h2>
-          <p class="text-sm text-gray-500">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Team Directory</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
             {{ filteredTeams.length }} team{{ filteredTeams.length !== 1 ? 's' : '' }}
             <span v-if="fetchedAt"> &middot; Updated {{ formatDate(fetchedAt) }}</span>
           </p>
@@ -13,7 +13,7 @@
         <button
           v-if="selectedOrg"
           @click="goToOrgDashboard"
-          class="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+          class="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-300 dark:border-primary-600 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
         >
           Org Dashboard
         </button>
@@ -35,12 +35,12 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search teams, PMs, components..."
-          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
       </div>
       <select
         v-model="sortBy"
-        class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
       >
         <option value="name">Sort: A-Z</option>
         <option value="headcount">Sort: Headcount</option>
@@ -54,21 +54,21 @@
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <p class="text-red-700 text-sm">{{ error }}</p>
+    <div v-else-if="error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+      <p class="text-red-700 dark:text-red-400 text-sm">{{ error }}</p>
     </div>
 
     <!-- Empty state -->
     <div v-else-if="filteredTeams.length === 0 && !searchQuery" class="text-center py-12">
-      <svg class="h-12 w-12 mx-auto text-gray-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
-      <p class="text-gray-500">Roster data not found. Run Roster Sync in Team Tracker settings to populate team data.</p>
+      <p class="text-gray-500 dark:text-gray-400">Roster data not found. Run Roster Sync in Team Tracker settings to populate team data.</p>
     </div>
 
     <!-- No search results -->
     <div v-else-if="filteredTeams.length === 0 && searchQuery" class="text-center py-12">
-      <p class="text-gray-500">No teams match "{{ searchQuery }}"</p>
+      <p class="text-gray-500 dark:text-gray-400">No teams match "{{ searchQuery }}"</p>
     </div>
 
     <!-- Team grid -->

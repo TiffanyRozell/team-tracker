@@ -3,23 +3,23 @@
     <div class="flex items-center gap-3 mb-6">
       <button
         @click="$emit('back')"
-        class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+        class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
       >
         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      <h2 class="text-2xl font-bold text-gray-900">Manage Admins</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage Admins</h2>
     </div>
 
     <!-- Add user form -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
       <form @submit.prevent="handleAdd" class="flex gap-3">
         <input
           v-model="newEmail"
           type="email"
           placeholder="user@redhat.com"
-          class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
         <button
           type="submit"
@@ -33,19 +33,19 @@
     </div>
 
     <!-- Loading state -->
-    <div v-if="loading" class="text-center py-8 text-gray-500">
+    <div v-if="loading" class="text-center py-8 text-gray-500 dark:text-gray-400">
       Loading admins...
     </div>
 
     <!-- User list -->
-    <div v-else class="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
+    <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
       <div
         v-for="email in sortedEmails"
         :key="email"
         class="px-4 py-3 flex items-center justify-between"
       >
         <div class="flex items-center gap-2">
-          <span class="text-sm text-gray-900">{{ email }}</span>
+          <span class="text-sm text-gray-900 dark:text-gray-100">{{ email }}</span>
           <span
             v-if="email === currentUserEmail"
             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800"
@@ -64,7 +64,7 @@
           </svg>
         </button>
       </div>
-      <div v-if="sortedEmails.length === 0" class="px-4 py-8 text-center text-gray-500 text-sm">
+      <div v-if="sortedEmails.length === 0" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
         No admins configured.
       </div>
     </div>
@@ -75,19 +75,19 @@
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       @click.self="emailToRemove = null"
     >
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4" @click.stop>
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">Remove Admin</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm mx-4" @click.stop>
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Remove Admin</h3>
         </div>
         <div class="px-6 py-4">
-          <p class="text-sm text-gray-600">
-            Are you sure you want to remove <span class="font-medium text-gray-900">{{ emailToRemove }}</span> from the admin list?
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Are you sure you want to remove <span class="font-medium text-gray-900 dark:text-gray-100">{{ emailToRemove }}</span> from the admin list?
           </p>
         </div>
-        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
           <button
             @click="emailToRemove = null"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Cancel
           </button>

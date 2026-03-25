@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-3xl">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Settings</h2>
 
     <!-- Tab bar -->
-    <div class="flex border-b border-gray-200 mb-6">
+    <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
       <!-- Dynamic module settings tabs -->
       <button
         v-for="tab in moduleSettingsTabs"
@@ -11,8 +11,8 @@
         @click="activeTab = tab.slug"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
         :class="activeTab === tab.slug
-          ? 'border-primary-600 text-primary-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
       >
         {{ tab.label }}
       </button>
@@ -21,8 +21,8 @@
         @click="activeTab = 'modules'"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
         :class="activeTab === 'modules'
-          ? 'border-primary-600 text-primary-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+          ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+          : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
       >
         Modules
       </button>

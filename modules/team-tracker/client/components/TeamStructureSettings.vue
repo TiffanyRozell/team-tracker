@@ -1,57 +1,57 @@
 <template>
   <div class="space-y-6">
     <!-- Google Sheet ID -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Google Sheets Integration</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Google Sheets Integration</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Optionally enrich LDAP data with team assignments from a Google Sheet.
       </p>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Spreadsheet ID</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Spreadsheet ID</label>
         <input
           v-model="editSheetId"
           placeholder="e.g. 1gQfxqHE5y9PIuW-pJONDITbeNA0Vg2x1pazywAcDHTg"
-          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         />
-        <p class="text-xs text-gray-500 mt-1">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
           All sheets in the spreadsheet are auto-discovered. Sheets without a recognized name column are automatically skipped.
         </p>
       </div>
     </div>
 
     <!-- Required Fields -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Required Column Mappings</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Required Column Mappings</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Map the required columns from your spreadsheet. These are used to match people and group them into teams.
       </p>
 
       <div class="space-y-3">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Name Column <span class="text-red-500">*</span></label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name Column <span class="text-red-500 dark:text-red-400">*</span></label>
           <input
             v-model="editNameColumn"
             placeholder="e.g. Associate's Name"
-            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
-          <p class="text-xs text-gray-400 mt-0.5">Exact column header used to match people from LDAP</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Exact column header used to match people from LDAP</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Team Grouping Column <span class="text-red-500">*</span></label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Team Grouping Column <span class="text-red-500 dark:text-red-400">*</span></label>
           <input
             v-model="editTeamGroupingColumn"
             placeholder="e.g. Scrum Team Name"
-            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
-          <p class="text-xs text-gray-400 mt-0.5">Column used to group people into teams (comma-separated values create multi-team membership)</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Column used to group people into teams (comma-separated values create multi-team membership)</p>
         </div>
       </div>
     </div>
 
     <!-- Custom Fields -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Custom Fields</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Custom Fields</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Map additional spreadsheet columns to custom fields. These can be displayed on person cards and used for filtering.
       </p>
 
@@ -59,37 +59,37 @@
         <div
           v-for="(field, idx) in editCustomFields"
           :key="idx"
-          class="p-3 bg-gray-50 rounded-md"
+          class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md"
         >
           <div class="grid grid-cols-3 gap-3 mb-2">
             <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Spreadsheet Column</label>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Spreadsheet Column</label>
               <input
                 v-model="field.columnLabel"
                 placeholder="e.g. Engineering Speciality"
                 class="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                :class="columnLabelError(idx) ? 'border-red-300 bg-red-50' : 'border-gray-300'"
+                :class="columnLabelError(idx) ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'"
               />
-              <p v-if="columnLabelError(idx)" class="text-xs text-red-500 mt-0.5">{{ columnLabelError(idx) }}</p>
+              <p v-if="columnLabelError(idx)" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ columnLabelError(idx) }}</p>
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Display Label</label>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Display Label</label>
               <input
                 v-model="field.displayLabel"
                 placeholder="e.g. Specialty"
-                class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Key</label>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Key</label>
               <input
                 v-model="field.key"
                 placeholder="auto-generated"
                 class="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                :class="keyError(idx) ? 'border-red-300 bg-red-50' : 'border-gray-300'"
+                :class="keyError(idx) ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'"
               />
-              <p v-if="keyError(idx)" class="text-xs text-red-500 mt-0.5">{{ keyError(idx) }}</p>
-              <p v-else class="text-xs text-gray-400 mt-0.5">Letters, numbers, underscores</p>
+              <p v-if="keyError(idx)" class="text-xs text-red-500 dark:text-red-400 mt-0.5">{{ keyError(idx) }}</p>
+              <p v-else class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Letters, numbers, underscores</p>
             </div>
           </div>
           <div class="flex items-center gap-4">
@@ -97,9 +97,9 @@
               <input
                 type="checkbox"
                 v-model="field.visible"
-                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                class="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
               />
-              <span class="text-xs text-gray-600">Show in person details</span>
+              <span class="text-xs text-gray-600 dark:text-gray-400">Show in person details</span>
             </label>
             <label class="flex items-center gap-1.5 cursor-pointer group relative">
               <input
@@ -108,19 +108,19 @@
                 :value="idx"
                 :checked="primaryDisplayIdx === idx"
                 @change="setPrimaryDisplay(idx)"
-                class="border-gray-300 text-primary-600 focus:ring-primary-500"
+                class="border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
               />
-              <span class="text-xs text-gray-600">Show as badge on person cards</span>
-              <svg class="h-3.5 w-3.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span class="text-xs text-gray-600 dark:text-gray-400">Show as badge on person cards</span>
+              <svg class="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <div class="absolute bottom-full left-0 mb-1 hidden group-hover:block w-64 p-2 text-xs text-gray-700 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+              <div class="absolute bottom-full left-0 mb-1 hidden group-hover:block w-64 p-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10">
                 The badge field appears as a colored tag on each person card and as a filter on the People view. Only one field can be the badge. Use "Show in person details" for additional fields you want displayed.
               </div>
             </label>
             <button
               @click="removeField(idx)"
-              class="ml-auto p-1 text-gray-400 hover:text-red-600 transition-colors"
+              class="ml-auto p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               title="Remove field"
             >
               <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,7 +135,7 @@
         <button
           @click="addField"
           :disabled="editCustomFields.length >= 20"
-          class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="text-sm text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -145,7 +145,7 @@
         <button
           v-if="primaryDisplayIdx !== null"
           @click="clearPrimaryDisplay"
-          class="text-sm text-gray-500 hover:text-gray-700 font-medium"
+          class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium"
         >
           Clear primary display
         </button>
@@ -161,7 +161,7 @@
       >
         {{ saving ? 'Saving...' : 'Save Team Structure' }}
       </button>
-      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600' : 'text-green-600'">
+      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
         {{ saveMessage }}
       </span>
     </div>

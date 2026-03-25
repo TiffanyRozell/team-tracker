@@ -1,11 +1,11 @@
 <template>
   <div
-    class="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-primary-300 hover:shadow-sm transition-all"
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-sm transition-all"
     @click="$emit('select', member)"
   >
     <div class="flex items-start justify-between">
       <div class="min-w-0">
-        <h4 class="text-sm font-semibold text-gray-900 truncate">{{ member.name }}</h4>
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ member.name }}</h4>
         <DynamicFieldBadge
           v-if="primaryDisplayField && member.customFields"
           :value="member.customFields[primaryDisplayField]"
@@ -20,9 +20,9 @@
         {{ teamCount }} teams
       </span>
     </div>
-    <div class="mt-2 text-xs text-gray-500 space-y-0.5">
+    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
       <p v-if="member.manager" class="truncate">
-        <span class="text-gray-400">Mgr:</span> {{ member.manager }}
+        <span class="text-gray-400 dark:text-gray-500">Mgr:</span> {{ member.manager }}
       </p>
       <template v-if="member.customFields">
         <p
@@ -30,28 +30,28 @@
           :key="field.key"
           class="truncate"
         >
-          <span class="text-gray-400">{{ field.label }}:</span> {{ member.customFields[field.key] || '—' }}
+          <span class="text-gray-400 dark:text-gray-500">{{ field.label }}:</span> {{ member.customFields[field.key] || '—' }}
         </p>
       </template>
       <p v-if="metrics?.nameNotFound" class="truncate">
-        <span class="text-gray-400 italic">no Jira user</span>
+        <span class="text-gray-400 dark:text-gray-500 italic">no Jira user</span>
       </p>
       <p v-else-if="metrics" class="truncate">
-        <span class="text-gray-400">Resolved (90d):</span> {{ metrics.resolvedCount ?? '--' }}
-        <span class="mx-1 text-gray-300">·</span>
-        <span class="text-gray-400">Points:</span> {{ metrics.resolvedPoints ?? '--' }}
+        <span class="text-gray-400 dark:text-gray-500">Resolved (90d):</span> {{ metrics.resolvedCount ?? '--' }}
+        <span class="mx-1 text-gray-300 dark:text-gray-600">·</span>
+        <span class="text-gray-400 dark:text-gray-500">Points:</span> {{ metrics.resolvedPoints ?? '--' }}
       </p>
       <p class="truncate">
-        <span class="text-gray-400">GitHub:</span>
+        <span class="text-gray-400 dark:text-gray-500">GitHub:</span>
         <template v-if="githubContributions != null">{{ githubContributions.totalContributions }} contributions</template>
-        <span v-else-if="member.githubUsername" class="text-gray-300">—</span>
-        <span v-else class="text-gray-300 italic text-xs" title="GitHub username not configured">no GitHub</span>
+        <span v-else-if="member.githubUsername" class="text-gray-300 dark:text-gray-600">—</span>
+        <span v-else class="text-gray-300 dark:text-gray-600 italic text-xs" title="GitHub username not configured">no GitHub</span>
       </p>
       <p class="truncate">
-        <span class="text-gray-400">GitLab:</span>
+        <span class="text-gray-400 dark:text-gray-500">GitLab:</span>
         <template v-if="gitlabContributions != null">{{ gitlabContributions.totalContributions }} contributions</template>
-        <span v-else-if="member.gitlabUsername" class="text-gray-300">—</span>
-        <span v-else class="text-gray-300 italic text-xs" title="GitLab username not configured">no GitLab</span>
+        <span v-else-if="member.gitlabUsername" class="text-gray-300 dark:text-gray-600">—</span>
+        <span v-else class="text-gray-300 dark:text-gray-600 italic text-xs" title="GitLab username not configured">no GitLab</span>
       </p>
     </div>
   </div>

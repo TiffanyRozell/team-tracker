@@ -11,7 +11,7 @@
       <div class="flex items-center gap-3">
         <button
           @click="nav.goBack()"
-          class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          class="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
           title="Back to Dashboard"
         >
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,8 +19,8 @@
           </svg>
         </button>
         <div>
-          <h2 class="text-xl font-bold text-gray-900">{{ team.displayName }}</h2>
-          <p class="text-sm text-gray-500">{{ uniqueCount }} members</p>
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ team.displayName }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ uniqueCount }} members</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -81,7 +81,7 @@
       <button
         @click="exportCsv"
         :disabled="!teamMetrics"
-        class="px-3 py-1.5 text-sm bg-white text-gray-700 border border-gray-300 rounded-md font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+        class="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md font-medium hover:bg-gray-50 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

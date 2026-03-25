@@ -3,14 +3,14 @@
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     @click.self="$emit('close')"
   >
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">{{ assigneeName }}</h2>
-          <p class="text-sm text-gray-500">{{ sprintName }}</p>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ assigneeName }}</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ sprintName }}</p>
         </div>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
+        <button @click="$emit('close')" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
           <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -26,11 +26,11 @@
           <div
             v-for="annotation in annotations"
             :key="annotation.id"
-            class="bg-gray-50 rounded-lg p-3 group"
+            class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 group"
           >
-            <p class="text-sm text-gray-900">{{ annotation.text }}</p>
+            <p class="text-sm text-gray-900 dark:text-gray-100">{{ annotation.text }}</p>
             <div class="flex items-center justify-between mt-2">
-              <span class="text-xs text-gray-500">
+              <span class="text-xs text-gray-500 dark:text-gray-400">
                 {{ annotation.author }} &middot; {{ formatTimestamp(annotation.createdAt) }}
               </span>
               <button
@@ -45,13 +45,13 @@
       </div>
 
       <!-- Add annotation -->
-      <div class="px-6 py-4 border-t border-gray-200 flex-shrink-0">
+      <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div class="flex gap-2">
           <input
             v-model="newText"
             type="text"
             placeholder="Add a note (e.g., PTO, ramp-up, team change)..."
-            class="flex-1 text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            class="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             @keyup.enter="handleSave"
           />
           <button

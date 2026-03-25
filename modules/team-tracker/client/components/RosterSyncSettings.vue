@@ -1,20 +1,20 @@
 <template>
   <div class="space-y-6">
     <!-- Sync Status -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold text-gray-900">Roster Sync</h3>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Roster Sync</h3>
         <div class="flex items-center gap-3">
           <span
             v-if="config?.lastSyncStatus"
             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
             :class="config.lastSyncStatus === 'success'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'"
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+              : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'"
           >
             {{ config.lastSyncStatus === 'success' ? 'Healthy' : 'Error' }}
           </span>
-          <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+          <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
             Never synced
           </span>
           <button
@@ -29,18 +29,18 @@
           </button>
         </div>
       </div>
-      <div v-if="config?.lastSyncAt" class="text-sm text-gray-500">
+      <div v-if="config?.lastSyncAt" class="text-sm text-gray-500 dark:text-gray-400">
         Last synced: {{ formatDate(config.lastSyncAt) }}
       </div>
-      <div v-if="config?.lastSyncError" class="mt-2 text-sm text-red-600">
+      <div v-if="config?.lastSyncError" class="mt-2 text-sm text-red-600 dark:text-red-400">
         Error: {{ config.lastSyncError }}
       </div>
     </div>
 
     <!-- Org Roots -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Org Roots</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Org Roots</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Define the org leaders whose teams will be tracked. The roster sync traverses each leader's LDAP reporting chain.
       </p>
 
@@ -48,29 +48,29 @@
         <div
           v-for="(root, idx) in editRoots"
           :key="idx"
-          class="flex items-center gap-3 p-3 bg-gray-50 rounded-md"
+          class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md"
         >
           <div class="flex-1 grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Kerberos UID</label>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Kerberos UID</label>
               <input
                 v-model="root.uid"
                 placeholder="e.g. shgriffi"
-                class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
             <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Display Name</label>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Display Name</label>
               <input
                 v-model="root.displayName"
                 placeholder="e.g. AI Platform"
-                class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
           </div>
           <button
             @click="removeRoot(idx)"
-            class="p-1 text-gray-400 hover:text-red-600 transition-colors mt-4"
+            class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors mt-4"
             title="Remove"
           >
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,7 +82,7 @@
 
       <button
         @click="addRoot"
-        class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+        class="text-sm text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 font-medium flex items-center gap-1"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -92,25 +92,25 @@
     </div>
 
     <!-- Username Inference -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Username Inference</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Username Inference</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Optionally infer missing GitHub/GitLab usernames by matching roster people against org/group member lists.
       </p>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">GitHub Orgs</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GitHub Orgs</label>
           <div class="space-y-2 mb-2">
             <div v-for="(org, idx) in editGithubOrgs" :key="'gh-' + idx" class="flex items-center gap-2">
               <input
                 v-model="editGithubOrgs[idx]"
                 placeholder="e.g. opendatahub-io"
-                class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
               <button
                 @click="editGithubOrgs.splice(idx, 1)"
-                class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 title="Remove"
               >
                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,28 +121,28 @@
           </div>
           <button
             @click="editGithubOrgs.push('')"
-            class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+            class="text-sm text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 font-medium flex items-center gap-1"
           >
             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Add GitHub org
           </button>
-          <p class="text-xs text-gray-500 mt-1">Requires GITHUB_TOKEN env var.</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Requires GITHUB_TOKEN env var.</p>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">GitLab Groups</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GitLab Groups</label>
           <div class="space-y-2 mb-2">
             <div v-for="(group, idx) in editGitlabGroups" :key="'gl-' + idx" class="flex items-center gap-2">
               <input
                 v-model="editGitlabGroups[idx]"
                 placeholder="e.g. redhat/rhoai"
-                class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
               <button
                 @click="editGitlabGroups.splice(idx, 1)"
-                class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 title="Remove"
               >
                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,14 +153,14 @@
           </div>
           <button
             @click="editGitlabGroups.push('')"
-            class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+            class="text-sm text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 font-medium flex items-center gap-1"
           >
             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Add GitLab group
           </button>
-          <p class="text-xs text-gray-500 mt-1">Requires GITLAB_TOKEN env var.</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Requires GITLAB_TOKEN env var.</p>
         </div>
       </div>
     </div>
@@ -174,7 +174,7 @@
       >
         {{ saving ? 'Saving...' : 'Save Configuration' }}
       </button>
-      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600' : 'text-green-600'">
+      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
         {{ saveMessage }}
       </span>
     </div>

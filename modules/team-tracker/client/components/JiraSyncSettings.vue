@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6">
     <!-- Project Keys -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <h3 class="text-lg font-semibold text-gray-900 mb-3">Jira Project Filter</h3>
-      <p class="text-sm text-gray-500 mb-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Jira Project Filter</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Restrict Jira metrics to specific projects. When configured, only issues from these projects are included in person metrics.
         Leave empty to include all projects.
       </p>
@@ -17,11 +17,11 @@
           <input
             v-model="editKeys[idx]"
             placeholder="e.g. RHOAIENG"
-            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 uppercase"
+            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 uppercase bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
           <button
             @click="editKeys.splice(idx, 1)"
-            class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+            class="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
             title="Remove"
           >
             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,7 +33,7 @@
 
       <button
         @click="editKeys.push('')"
-        class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+        class="text-sm text-primary-600 hover:text-primary-700 dark:hover:text-primary-400 font-medium flex items-center gap-1"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -51,7 +51,7 @@
       >
         {{ saving ? 'Saving...' : 'Save Configuration' }}
       </button>
-      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600' : 'text-green-600'">
+      <span v-if="saveMessage" class="text-sm" :class="saveError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
         {{ saveMessage }}
       </span>
     </div>
